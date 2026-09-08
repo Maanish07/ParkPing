@@ -9,7 +9,6 @@ import {
   MessageSquare, 
   ShieldCheck, 
   Send, 
-  AlertCircle, 
   Car, 
   Lightbulb, 
   BellRing, 
@@ -17,7 +16,9 @@ import {
   CheckCircle2, 
   Sparkles,
   Lock,
-  ArrowRight
+  ArrowRight,
+  Shield,
+  Zap
 } from 'lucide-react';
 
 interface PublicTagData {
@@ -43,15 +44,13 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
   const [isCalling, setIsCalling] = useState(false);
   const [sendingMessage, setSendingMessage] = useState(false);
   const [messageSent, setMessageSent] = useState(false);
-  const [senderContact, setSenderContact] = useState('');
 
-  // Icon selector helper
   const getAlertIcon = (iconName: string) => {
     switch (iconName) {
       case 'Car':
-        return <Car className="w-5 h-5 text-amber-400" />;
+        return <Car className="w-5 h-5 text-yellow-400" />;
       case 'Lightbulb':
-        return <Lightbulb className="w-5 h-5 text-yellow-400" />;
+        return <Lightbulb className="w-5 h-5 text-amber-400" />;
       case 'ShieldAlert':
         return <ShieldCheck className="w-5 h-5 text-cyan-400" />;
       case 'BellRing':
@@ -60,7 +59,7 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
         return <AlertTriangle className="w-5 h-5 text-orange-400" />;
       case 'MessageSquare':
       default:
-        return <MessageSquare className="w-5 h-5 text-brand-400" />;
+        return <MessageSquare className="w-5 h-5 text-yellow-400" />;
     }
   };
 
@@ -80,7 +79,6 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
           alertType: selectedAlert.id,
           message: messageContent,
           actionType: 'whatsapp',
-          senderPhone: senderContact,
         }),
       });
 
@@ -88,7 +86,6 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
       if (data.success) {
         setMessageSent(true);
         if (data.whatsappUrl) {
-          // Open WhatsApp in new tab / app
           window.open(data.whatsappUrl, '_blank');
         }
       }
@@ -118,29 +115,29 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
   };
 
   return (
-    <div className="min-h-screen bg-[#070b12] text-slate-100 flex flex-col items-center justify-between p-4 sm:p-6 selection:bg-brand-500 selection:text-black">
+    <div className="min-h-screen bg-[#06090f] text-slate-100 flex flex-col items-center justify-between p-4 sm:p-6 selection:bg-yellow-400 selection:text-black">
       {/* Background ambient lighting */}
-      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-brand-500/10 rounded-full blur-[100px] pointer-events-none" />
+      <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[500px] h-[300px] bg-yellow-400/10 rounded-full blur-[100px] pointer-events-none" />
 
       {/* Top Header */}
       <header className="w-full max-w-md flex items-center justify-between py-3 relative z-10">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-brand-500 to-amber-600 flex items-center justify-center text-black font-black text-sm shadow-glow">
+        <div className="flex items-center gap-2.5">
+          <div className="w-9 h-9 rounded-2xl bg-yellow-400 text-black font-black text-sm flex items-center justify-center shadow-md">
             PP
           </div>
           <div>
             <div className="font-black text-base tracking-wider uppercase flex items-center gap-1 text-white">
-              ParkPing
+              PARKPING
             </div>
-            <div className="text-[10px] text-slate-400 uppercase tracking-widest font-semibold">
-              Vehicle Contact Portal
+            <div className="text-[10px] text-yellow-400 uppercase tracking-widest font-extrabold">
+              VEHICLE SAMPARK PORTAL
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-emerald-400">
+        <div className="flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-slate-900 border border-slate-800 text-emerald-400 shadow-inner">
           <ShieldCheck className="w-3.5 h-3.5" />
-          Masked Shield
+          Masked Contact
         </div>
       </header>
 
@@ -169,36 +166,43 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
             )}
           </div>
 
-          {/* Vehicle Number Plate */}
-          <div className="my-2 inline-block">
-            <div className="bg-yellow-400 text-black border-2 border-black font-black plate-font text-2xl sm:text-3xl px-5 py-2 rounded-xl shadow-lg">
-              {tag.vehicleNumber}
+          {/* Authentic Indian Number Plate */}
+          <div className="my-2 inline-block w-full max-w-xs">
+            <div className="w-full rounded-xl border-2 border-black bg-yellow-400 text-black flex items-center shadow-xl overflow-hidden">
+              <div className="bg-blue-900 text-white px-2.5 py-2.5 flex flex-col items-center justify-center text-[10px] font-black leading-none border-r border-black">
+                <span>I</span>
+                <span>N</span>
+                <span>D</span>
+              </div>
+              <div className="flex-1 py-2 px-3 text-2xl sm:text-3xl font-black font-mono tracking-widest text-center">
+                {tag.vehicleNumber}
+              </div>
             </div>
           </div>
 
           {/* Vehicle Model & Masked Phone */}
           <div className="text-sm font-semibold text-slate-300 mt-2 flex items-center justify-center gap-2">
-            <Car className="w-4 h-4 text-brand-400" />
+            <Car className="w-4 h-4 text-yellow-400" />
             <span>{tag.vehicleModel || 'Vehicle'}</span>
           </div>
 
-          <div className="mt-3 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-400 flex items-center justify-center gap-2">
+          <div className="mt-3 p-2.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs text-slate-300 flex items-center justify-center gap-2">
             <Lock className="w-3.5 h-3.5 text-emerald-400" />
             <span>Owner Contact: <strong className="font-mono text-white">{tag.maskedPhone}</strong></span>
           </div>
 
-          {/* Parking Note if set */}
+          {/* Parking Note */}
           {tag.statusMessage && (
-            <div className="mt-3 p-3 rounded-xl bg-brand-500/10 border border-brand-500/20 text-xs text-brand-300 font-medium">
+            <div className="mt-3 p-3 rounded-xl bg-yellow-400/10 border border-yellow-400/20 text-xs text-yellow-300 font-medium">
               &ldquo;{tag.statusMessage}&rdquo;
             </div>
           )}
         </div>
 
-        {/* Action 1: Masked Voice Call Button */}
+        {/* Action 1: Call Owner Button */}
         <div className="glass-card rounded-2xl p-4 border border-white/10 flex items-center justify-between gap-3 shadow-xl">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-amber-600 flex items-center justify-center text-black font-bold shadow-glow shrink-0">
+            <div className="w-12 h-12 rounded-2xl bg-yellow-400 text-black flex items-center justify-center font-bold shadow-md shrink-0">
               <Phone className="w-6 h-6" />
             </div>
             <div>
@@ -206,32 +210,31 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
                 Call Vehicle Owner
               </div>
               <div className="text-[11px] text-slate-400">
-                Direct masked relay • No phone number shared
+                Direct masked relay • No phone number revealed
               </div>
             </div>
           </div>
 
           <button
             onClick={handleInitiateCall}
-            className="px-4 py-2.5 rounded-xl bg-brand-500 hover:bg-brand-400 text-black font-extrabold text-xs shadow-glow transition active:scale-95 shrink-0"
+            className="px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs glow-yellow transition active:scale-95 shrink-0"
           >
             Call Now
           </button>
         </div>
 
-        {/* Action 2: Quick Masked Alert Messages */}
+        {/* Action 2: Quick Alert Messages */}
         <div className="glass-panel rounded-3xl p-5 border border-white/10 shadow-2xl space-y-4">
           <div className="flex items-center justify-between">
-            <div className="text-xs font-extrabold uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
-              <MessageSquare className="w-4 h-4 text-brand-400" />
-              Send 1-Click Alert Message
+            <div className="text-xs font-black uppercase tracking-wider text-slate-200 flex items-center gap-1.5">
+              <MessageSquare className="w-4 h-4 text-yellow-400" />
+              Send 1-Click WhatsApp Alert
             </div>
-            <span className="text-[10px] text-emerald-400 font-semibold">
-              WhatsApp / SMS Bridge
+            <span className="text-[10px] text-emerald-400 font-bold">
+              Instant Dispatch
             </span>
           </div>
 
-          {/* Quick Alert Grid */}
           <div className="grid grid-cols-2 gap-2.5">
             {QUICK_ALERTS.map((alert) => {
               const isSelected = selectedAlert.id === alert.id;
@@ -244,14 +247,14 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
                   }}
                   className={`p-3 rounded-2xl border text-left flex flex-col justify-between gap-2 transition-all ${
                     isSelected
-                      ? 'bg-gradient-to-br from-brand-500/20 to-amber-500/10 border-brand-500 text-white shadow-glow'
+                      ? 'bg-yellow-400/15 border-yellow-400 text-white glow-yellow'
                       : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-white'
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     {getAlertIcon(alert.iconName)}
                     {isSelected && (
-                      <span className="w-2 h-2 rounded-full bg-brand-400 animate-pulse" />
+                      <span className="w-2 h-2 rounded-full bg-yellow-400 animate-pulse" />
                     )}
                   </div>
                   <div>
@@ -267,7 +270,6 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
             })}
           </div>
 
-          {/* Message Preview & Custom Edit Box */}
           <form onSubmit={handleSendAlert} className="space-y-3 pt-2">
             <div>
               <label className="block text-[11px] font-bold text-slate-400 mb-1">
@@ -278,15 +280,14 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
                 value={selectedAlert.id === 'custom' ? customText : (customText || selectedAlert.defaultMessage)}
                 onChange={(e) => setCustomText(e.target.value)}
                 placeholder="Type your urgent message..."
-                className="w-full bg-slate-900 border border-slate-700 focus:border-brand-500 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none transition resize-none"
+                className="w-full bg-slate-900 border border-slate-700 focus:border-yellow-400 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none transition resize-none shadow-inner"
               />
             </div>
 
-            {/* Submit Alert Button */}
             <button
               type="submit"
               disabled={sendingMessage}
-              className="w-full py-3.5 px-4 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 text-black font-extrabold text-sm shadow-glow-emerald transition active:scale-95 flex items-center justify-center gap-2"
+              className="w-full py-3.5 px-4 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-black font-black text-sm glow-emerald transition active:scale-95 flex items-center justify-center gap-2"
             >
               {sendingMessage ? (
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
@@ -299,17 +300,16 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
             </button>
           </form>
 
-          {/* Message Success Banner */}
           {messageSent && (
-            <div className="p-3 rounded-xl bg-emerald-950/70 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-xs flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Alert dispatched via ParkPing WhatsApp Relay. Owner notified!</span>
+              <span>Alert dispatched via WhatsApp Relay. Owner notified!</span>
             </div>
           )}
         </div>
       </main>
 
-      {/* Footer / Privacy Guarantee */}
+      {/* Footer */}
       <footer className="w-full max-w-md text-center py-4 text-slate-500 text-[11px] relative z-10">
         <div className="flex items-center justify-center gap-1.5 font-semibold text-slate-400">
           <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
@@ -320,7 +320,7 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
         </p>
       </footer>
 
-      {/* Masked Call Interactive Modal */}
+      {/* Masked Call Modal */}
       {isCalling && (
         <MaskedCallModal
           vehicleNumber={tag.vehicleNumber}

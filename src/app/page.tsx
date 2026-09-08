@@ -21,16 +21,19 @@ import {
   Search, 
   Layers, 
   CheckCircle2, 
-  ArrowRight,
-  ExternalLink,
-  Lock,
-  Zap,
-  Clock,
-  HelpCircle,
-  Smartphone,
-  Award,
-  ChevronDown,
-  X
+  ArrowRight, 
+  Lock, 
+  Zap, 
+  Clock, 
+  HelpCircle, 
+  Smartphone, 
+  Award, 
+  X,
+  Star,
+  Check,
+  Phone,
+  MessageSquare,
+  ShieldAlert
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -44,10 +47,12 @@ export default function HomePage() {
   const [showBulkPrint, setShowBulkPrint] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
 
+  // Section Refs
   const generatorRef = useRef<HTMLDivElement | null>(null);
   const garageRef = useRef<HTMLDivElement | null>(null);
+  const howItWorksRef = useRef<HTMLDivElement | null>(null);
+  const simulatorRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch initial tags
   const fetchTags = async () => {
     try {
       const res = await fetch('/api/tags');
@@ -68,7 +73,6 @@ export default function HomePage() {
 
   const handleTagsCreated = (newTags: VehicleTag[]) => {
     setTags((prev) => [...newTags, ...prev.filter((t) => !newTags.some((nt) => nt.id === t.id))]);
-    // Scroll down to garage
     garageRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
@@ -83,15 +87,10 @@ export default function HomePage() {
     setTags((prev) => prev.filter((t) => t.id !== tagId));
   };
 
-  const scrollToGenerator = () => {
-    generatorRef.current?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
+    ref.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const scrollToGarage = () => {
-    garageRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  // Filtered tags
   const filteredTags = tags.filter((t) => {
     const matchesSearch =
       t.vehicleNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -105,7 +104,7 @@ export default function HomePage() {
   const activeCount = tags.filter((t) => t.status === 'active').length;
 
   return (
-    <div className="min-h-screen bg-[#080c14] text-slate-100 flex flex-col justify-between selection:bg-brand-500 selection:text-black">
+    <div className="min-h-screen bg-[#06090f] text-slate-100 flex flex-col justify-between selection:bg-yellow-400 selection:text-black">
       {/* Navbar */}
       <Navbar
         totalVehicles={tags.length}
@@ -113,78 +112,77 @@ export default function HomePage() {
         totalPings={tags.reduce((acc, t) => acc + (t.scanCount || 0), 0)}
         onOpenBulkPrint={() => setShowBulkPrint(true)}
         onOpenLogs={() => setShowLogs(true)}
-        onScrollToGenerator={scrollToGenerator}
+        onScrollToGenerator={() => scrollToSection(generatorRef)}
+        onScrollToHowItWorks={() => scrollToSection(howItWorksRef)}
+        onScrollToGarage={() => scrollToSection(garageRef)}
+        onScrollToSimulator={() => scrollToSection(simulatorRef)}
       />
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-20 flex-1 w-full">
-        {/* HERO SECTION FOR CAR OWNERS */}
+      {/* Main Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 space-y-24 flex-1 w-full">
+        {/* HERO SECTION */}
         <section className="relative pt-6 pb-12 flex flex-col lg:flex-row lg:items-center justify-between gap-12">
-          {/* Left copy */}
           <div className="lg:max-w-2xl space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-xs font-extrabold uppercase tracking-wider">
-              <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>For Car Owners • Protect Your Car & Privacy</span>
+            {/* Top Star Badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 text-xs font-black uppercase tracking-wider">
+              <Star className="w-3.5 h-3.5 fill-yellow-400" />
+              <span>Smart Vehicle Privacy Tag · Masked Calling & WhatsApp</span>
             </div>
 
-            <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-[1.1]">
-              The Smart Windshield Tag{' '}
-              <span className="bg-gradient-to-r from-brand-400 via-amber-400 to-yellow-300 bg-clip-text text-transparent">
-                Every Car Owner Needs
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-white leading-[1.08]">
+              Let anyone reach you —{' '}
+              <span className="bg-gradient-to-r from-yellow-300 via-yellow-400 to-amber-500 bg-clip-text text-transparent">
+                without sharing your number.
               </span>
             </h1>
 
+            {/* Subhead */}
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
-              Never worry about parking in tight spots or leaving handwritten phone number slips again. 
-              Let anyone reach you via <strong>Masked Call or WhatsApp</strong> when your car needs attention — while your personal number stays 100% hidden.
+              Stick the ParkPing smart tag on your car or bike. If there&apos;s ever a problem, someone is blocked, or lights are left on, people scan it with any phone camera and reach you on a <strong>masked call or WhatsApp</strong>. Your personal mobile number stays completely private.
             </p>
 
-            {/* Benefit Highlights */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
-              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800">
-                <div className="w-9 h-9 rounded-xl bg-brand-500/15 flex items-center justify-center text-brand-400 shrink-0">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div className="text-xs">
-                  <div className="font-bold text-white">Zero Spam / Harassment</div>
-                  <div className="text-slate-400 text-[11px]">Real phone numbers are never shown</div>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-slate-900/70 border border-slate-800">
-                <div className="w-9 h-9 rounded-xl bg-cyan-500/15 flex items-center justify-center text-cyan-400 shrink-0">
-                  <Layers className="w-5 h-5" />
-                </div>
-                <div className="text-xs">
-                  <div className="font-bold text-white">Multi-Car Garage Support</div>
-                  <div className="text-slate-400 text-[11px]">Manage all family cars in one place</div>
-                </div>
-              </div>
-            </div>
-
             {/* CTA Buttons */}
-            <div className="flex flex-wrap items-center gap-4 pt-4">
+            <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
-                onClick={scrollToGenerator}
-                className="py-4 px-8 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 hover:from-brand-400 hover:to-amber-400 text-black font-black text-sm tracking-wide shadow-glow transition transform active:scale-95 flex items-center gap-2"
+                onClick={() => scrollToSection(generatorRef)}
+                className="py-4 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm tracking-wide glow-yellow transition transform active:scale-95 flex items-center gap-2"
               >
                 <Sparkles className="w-5 h-5" />
-                Generate Smart Tag for My Car
+                Generate Free eTag Now
+                <ArrowRight className="w-4 h-4" />
               </button>
 
               <button
-                onClick={scrollToGarage}
-                className="py-4 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm border border-slate-800 transition flex items-center gap-2"
+                onClick={() => scrollToSection(howItWorksRef)}
+                className="py-4 px-6 rounded-2xl bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-sm border border-slate-700 transition flex items-center gap-2"
               >
-                <Car className="w-4 h-4 text-brand-400" />
-                View My Registered Cars ({tags.length})
+                See How It Works
               </button>
+            </div>
+
+            {/* Trust Line */}
+            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-2 border-t border-white/5">
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <Check className="w-4 h-4 text-yellow-400 font-bold" />
+                <span>Zero Number Leak</span>
+              </div>
+              <span className="text-slate-700">•</span>
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <Check className="w-4 h-4 text-yellow-400 font-bold" />
+                <span>Works with Any Phone Camera</span>
+              </div>
+              <span className="text-slate-700">•</span>
+              <div className="flex items-center gap-1.5 text-slate-300">
+                <Check className="w-4 h-4 text-yellow-400 font-bold" />
+                <span>Multi-Car Support</span>
+              </div>
             </div>
           </div>
 
           {/* Right Floating Badge Visual */}
           <div className="flex flex-col items-center justify-center relative">
-            <div className="absolute -inset-6 bg-gradient-to-r from-brand-500/20 to-cyan-500/20 rounded-full blur-3xl opacity-60 pointer-events-none" />
+            <div className="absolute -inset-8 bg-gradient-to-r from-yellow-400/20 to-cyan-500/20 rounded-full blur-3xl opacity-60 pointer-events-none" />
             <div className="relative transform lg:rotate-1 hover:rotate-0 transition duration-300">
               {tags.length > 0 && (
                 <PrintableBadge tag={tags[0]} />
@@ -193,24 +191,95 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* SECTION 1: INTERACTIVE WINDSHIELD SIMULATOR */}
-        <section className="scroll-mt-24">
+        {/* THREE STEPS: HOW IT WORKS SECTION */}
+        <section ref={howItWorksRef} className="scroll-mt-24 pt-4">
+          <div className="text-center max-w-2xl mx-auto mb-12">
+            <p className="text-xs font-black uppercase tracking-widest text-yellow-400 mb-2">
+              HOW IT WORKS
+            </p>
+            <h2 className="text-3xl sm:text-4xl font-black text-white">
+              Three steps. That&apos;s the whole thing.
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="glass-card rounded-3xl p-8 border border-white/10 glass-card-hover relative">
+              <div className="text-4xl font-black font-mono text-yellow-400/40 mb-4">01</div>
+              <h3 className="text-lg font-black text-white mb-2">Scan the tag</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Anyone can scan the QR sticker using a normal smartphone camera (iPhone or Android) — no mobile app required.
+              </p>
+            </div>
+
+            <div className="glass-card rounded-3xl p-8 border border-white/10 glass-card-hover relative">
+              <div className="text-4xl font-black font-mono text-yellow-400/40 mb-4">02</div>
+              <h3 className="text-lg font-black text-white mb-2">They reach out</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                They send a 1-click alert (e.g. &ldquo;Car Blocking Way&rdquo;) or place a call, right from the browser.
+              </p>
+            </div>
+
+            <div className="glass-card rounded-3xl p-8 border border-white/10 glass-card-hover relative">
+              <div className="text-4xl font-black font-mono text-yellow-400/40 mb-4">03</div>
+              <h3 className="text-lg font-black text-white mb-2">You stay private</h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                You receive a masked call, SMS, or WhatsApp message. Your 10-digit mobile number is never visible to anyone.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* CORE PILLARS GRID */}
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="glass-card rounded-3xl p-6 border border-white/10 glass-card-hover">
+            <div className="w-12 h-12 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 flex items-center justify-center font-bold mb-4 shadow">
+              <Lock className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-white mb-1.5">Private Contact</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Your details are never visible to the person reaching you. Stops harassment, data brokers, and marketing spam.
+            </p>
+          </div>
+
+          <div className="glass-card rounded-3xl p-6 border border-white/10 glass-card-hover">
+            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-bold mb-4 shadow">
+              <PhoneCall className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-white mb-1.5">Masked Calls + WhatsApp</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Calls and WhatsApp alerts are routed through a secure virtual relay. Connects in seconds with zero delay.
+            </p>
+          </div>
+
+          <div className="glass-card rounded-3xl p-6 border border-white/10 glass-card-hover">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold mb-4 shadow">
+              <Zap className="w-6 h-6" />
+            </div>
+            <h3 className="text-base font-bold text-white mb-1.5">Instant Free eTag</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Get printable sticker badges instantly. Change your phone number anytime in cloud without reprinting!
+            </p>
+          </div>
+        </section>
+
+        {/* INTERACTIVE WINDSHIELD SIMULATOR */}
+        <section ref={simulatorRef} className="scroll-mt-24">
           <WindshieldSimulator selectedTag={tags[0]} />
         </section>
 
-        {/* SECTION 2: LIVE PASSERBY SMARTPHONE DEMO */}
+        {/* LIVE SMARTPHONE SCAN DEMO */}
         <section className="scroll-mt-24">
           {tags.length > 0 && (
             <PasserbyMobileMockup tag={tags[0]} />
           )}
         </section>
 
-        {/* SECTION 3: GENERATOR STUDIO (Single or Multi-Car) */}
+        {/* INSTANT ETAG GENERATOR STUDIO */}
         <section ref={generatorRef} className="scroll-mt-24">
           <TagGenerator onTagsCreated={handleTagsCreated} />
         </section>
 
-        {/* SECTION 4: MY GARAGE (Active Registered Vehicles) */}
+        {/* MY GARAGE / REGISTERED VEHICLES */}
         <section ref={garageRef} className="space-y-6 scroll-mt-24">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -218,8 +287,8 @@ export default function HomePage() {
                 <h2 className="text-2xl sm:text-3xl font-black text-white">
                   My Registered Vehicles ({filteredTags.length})
                 </h2>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-slate-300 font-mono">
-                  {tags.length} Cars
+                <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-yellow-400 font-mono font-bold">
+                  {tags.length} Total
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
@@ -229,7 +298,6 @@ export default function HomePage() {
 
             {/* Filter & Search Bar */}
             <div className="flex flex-wrap items-center gap-3">
-              {/* Status Filter */}
               <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
                 {(['all', 'active', 'dnd', 'inactive'] as const).map((st) => (
                   <button
@@ -237,7 +305,7 @@ export default function HomePage() {
                     onClick={() => setStatusFilter(st)}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition capitalize ${
                       statusFilter === st
-                        ? 'bg-brand-500 text-black shadow'
+                        ? 'bg-yellow-400 text-black shadow'
                         : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -246,24 +314,23 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {/* Search input */}
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
                 <input
                   type="text"
-                  placeholder="Search car plate / model..."
+                  placeholder="Search plate / model..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-500 w-48 sm:w-60"
+                  className="bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 w-48 sm:w-60"
                 />
               </div>
             </div>
           </div>
 
-          {/* Tag Grid */}
+          {/* Grid */}
           {loading ? (
             <div className="py-20 text-center text-slate-500">
-              <div className="w-8 h-8 border-2 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+              <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
               Loading vehicle garage...
             </div>
           ) : filteredTags.length === 0 ? (
@@ -274,8 +341,8 @@ export default function HomePage() {
                 No car scanner matched your filter. Use the generator above to add a car to your garage.
               </p>
               <button
-                onClick={scrollToGenerator}
-                className="px-4 py-2 rounded-xl bg-brand-500 text-black font-extrabold text-xs shadow-glow"
+                onClick={() => scrollToSection(generatorRef)}
+                className="px-4 py-2 rounded-xl bg-yellow-400 text-black font-black text-xs glow-yellow"
               >
                 + Add Car Tag
               </button>
@@ -295,22 +362,22 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* SECTION 5: STICKER SPECS & AUTOMOTIVE QUALITY */}
+        {/* STICKER AUTOMOTIVE QUALITY */}
         <section className="scroll-mt-24">
           <StickerShowcase />
         </section>
 
-        {/* SECTION 6: FREQUENTLY ASKED QUESTIONS FOR CAR OWNERS */}
-        <section className="glass-panel rounded-3xl p-6 sm:p-8 border border-white/10 space-y-6">
+        {/* FREQUENTLY ASKED QUESTIONS */}
+        <section className="glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 space-y-6">
           <div className="text-center max-w-2xl mx-auto">
-            <h3 className="text-2xl font-black text-white">Frequently Asked Questions</h3>
+            <h3 className="text-2xl sm:text-3xl font-black text-white">Frequently Asked Questions</h3>
             <p className="text-xs text-slate-400 mt-1">Everything you need to know about putting ParkPing on your car.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
               <h4 className="text-sm font-bold text-white flex items-center gap-2 mb-1.5">
-                <HelpCircle className="w-4 h-4 text-brand-400" />
+                <HelpCircle className="w-4 h-4 text-yellow-400 shrink-0" />
                 Will people see my real phone number?
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
@@ -318,9 +385,9 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
               <h4 className="text-sm font-bold text-white flex items-center gap-2 mb-1.5">
-                <HelpCircle className="w-4 h-4 text-brand-400" />
+                <HelpCircle className="w-4 h-4 text-yellow-400 shrink-0" />
                 What if I change my phone number or sell my car?
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
@@ -328,9 +395,9 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
               <h4 className="text-sm font-bold text-white flex items-center gap-2 mb-1.5">
-                <HelpCircle className="w-4 h-4 text-brand-400" />
+                <HelpCircle className="w-4 h-4 text-yellow-400 shrink-0" />
                 Can I have tags for 2 or 3 cars in my family?
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
@@ -338,9 +405,9 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800">
+            <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
               <h4 className="text-sm font-bold text-white flex items-center gap-2 mb-1.5">
-                <HelpCircle className="w-4 h-4 text-brand-400" />
+                <HelpCircle className="w-4 h-4 text-yellow-400 shrink-0" />
                 Does the person scanning need an app?
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
@@ -352,20 +419,31 @@ export default function HomePage() {
       </main>
 
       {/* FOOTER */}
-      <footer className="w-full border-t border-slate-800/80 py-8 px-4 sm:px-8 mt-16 no-print bg-[#06090f]">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-brand-500 flex items-center justify-center text-black font-black text-xs">
+      <footer className="w-full border-t border-slate-800/80 py-10 px-4 sm:px-8 mt-20 no-print bg-[#050810]">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-500">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-xl bg-yellow-400 text-black font-black text-sm flex items-center justify-center shadow">
               PP
             </div>
-            <span className="text-slate-300 font-bold">ParkPing System</span>
-            <span>• Next-Gen Smart Vehicle Privacy & Parking Scanner</span>
+            <div>
+              <span className="text-slate-200 font-bold text-sm">ParkPing Sampark Tag</span>
+              <p className="text-[11px] text-slate-500">Privacy-First Smart Vehicle Contact Platform</p>
+            </div>
           </div>
 
-          <div className="flex items-center gap-4 text-[11px]">
-            <span className="text-slate-400">Multi-Car QR Engine</span>
-            <span>•</span>
-            <span className="text-slate-400">Masked VoIP & WhatsApp Bridge</span>
+          <div className="flex flex-wrap items-center gap-6 text-xs text-slate-400 font-semibold">
+            <button onClick={() => scrollToSection(howItWorksRef)} className="hover:text-yellow-400">
+              How it works
+            </button>
+            <button onClick={() => scrollToSection(generatorRef)} className="hover:text-yellow-400">
+              Create eTag
+            </button>
+            <button onClick={() => scrollToSection(garageRef)} className="hover:text-yellow-400">
+              My Garage
+            </button>
+            <button onClick={() => setShowLogs(true)} className="hover:text-yellow-400">
+              Activity Logs
+            </button>
           </div>
         </div>
       </footer>

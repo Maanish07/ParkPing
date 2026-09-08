@@ -15,7 +15,9 @@ import {
   ShieldCheck, 
   Copy, 
   AlertCircle,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Zap,
+  Lock
 } from 'lucide-react';
 
 interface TagGeneratorProps {
@@ -48,7 +50,7 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
     statusMessage: '',
   });
 
-  // Bulk mode state (User can generate 2-3 or more scanners at a time)
+  // Bulk mode state
   const [bulkRows, setBulkRows] = useState<BulkVehicleRow[]>([
     {
       id: 'row-1',
@@ -73,7 +75,6 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
   const [bulkPrimaryPhone, setBulkPrimaryPhone] = useState('');
   const [bulkTheme, setBulkTheme] = useState<BadgeTheme>('amber_neon');
 
-  // Add a new row to bulk creator
   const handleAddBulkRow = () => {
     setBulkRows([
       ...bulkRows,
@@ -88,13 +89,11 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
     ]);
   };
 
-  // Remove row
   const handleRemoveBulkRow = (id: string) => {
     if (bulkRows.length <= 1) return;
     setBulkRows(bulkRows.filter((r) => r.id !== id));
   };
 
-  // Update specific field in bulk row
   const handleUpdateBulkRow = (id: string, field: keyof BulkVehicleRow, value: string) => {
     setBulkRows(
       bulkRows.map((row) => {
@@ -109,7 +108,6 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
     );
   };
 
-  // Apply same phone across all rows
   const handleToggleSamePhone = (checked: boolean) => {
     setApplySamePhone(checked);
     if (checked && bulkPrimaryPhone) {
@@ -122,7 +120,6 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
     }
   };
 
-  // Handle single form submit
   const handleSingleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!singleInput.vehicleNumber || !singleInput.phoneNumber) {
@@ -142,7 +139,6 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
       if (data.success && data.tag) {
         onTagsCreated([data.tag]);
         setSuccessCount(1);
-        // Reset single form
         setSingleInput({
           vehicleNumber: '',
           phoneNumber: '',
@@ -163,10 +159,8 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
     }
   };
 
-  // Handle bulk form submit
   const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Validate rows
     const validRows = bulkRows.filter((r) => r.vehicleNumber.trim() && (r.phoneNumber.trim() || bulkPrimaryPhone.trim()));
     if (validRows.length === 0) {
       alert('Please fill out at least one vehicle with vehicle number and mobile number.');
@@ -195,7 +189,6 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
       if (data.success && data.tags) {
         onTagsCreated(data.tags);
         setSuccessCount(data.tags.length);
-        // Reset bulk
         setBulkRows([
           {
             id: `row-${Date.now()}-1`,
@@ -222,12 +215,11 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
     }
   };
 
-  // Simulated preview tag for the live generator preview
   const livePreviewTag: VehicleTag = {
     id: 'PP-PREVIEW',
     vehicleNumber: singleInput.vehicleNumber ? formatVehicleNumber(singleInput.vehicleNumber) : 'DL 01 AB 1234',
     phoneNumber: singleInput.phoneNumber || '+91 98765 43210',
-    ownerName: singleInput.ownerName || 'Vehicle Owner',
+    ownerName: singleInput.ownerName || 'Car Owner',
     vehicleModel: singleInput.vehicleModel || 'Hyundai Creta',
     vehicleType: singleInput.vehicleType || 'car',
     status: 'active',
@@ -238,108 +230,108 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
   };
 
   return (
-    <div className="w-full glass-panel rounded-3xl p-6 sm:p-8 border border-white/10 shadow-2xl relative overflow-hidden">
-      {/* Decorative gradient glow */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-brand-500/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
+    <div className="w-full glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl relative overflow-hidden">
+      {/* Ambient background glows */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-yellow-400/10 rounded-full blur-3xl pointer-events-none -mr-20 -mt-20" />
       <div className="absolute bottom-0 left-0 w-80 h-80 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none -ml-20 -mb-20" />
 
-      {/* Header & Mode Switcher */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10 relative z-10">
+      {/* Header & Tabs */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-8 border-b border-white/10 relative z-10">
         <div>
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/20 text-brand-400 text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 text-xs font-black uppercase tracking-wider mb-2">
             <Sparkles className="w-3.5 h-3.5" />
-            Scanner Generator Studio
+            Instant eTag Studio
           </div>
-          <h2 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-            Create Smart QR Scanner
+          <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight">
+            Generate Smart Vehicle QR Tag
           </h2>
-          <p className="text-sm text-slate-400 mt-1">
-            Pair your Vehicle Plate Number with a Mobile Number for privacy-masked calling & messaging.
+          <p className="text-sm text-slate-300 mt-1">
+            Pair your car plate number with your mobile number. Real phone numbers are 100% masked on scan.
           </p>
         </div>
 
-        {/* Mode Tabs */}
+        {/* Mode Switcher */}
         <div className="flex items-center p-1 rounded-2xl bg-slate-900 border border-slate-800 self-start md:self-auto shadow-inner">
           <button
             onClick={() => setMode('single')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
               mode === 'single'
-                ? 'bg-brand-500 text-black shadow-glow'
+                ? 'bg-yellow-400 text-black glow-yellow'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Car className="w-4 h-4" />
-            Single Car Scanner
+            Single Vehicle Tag
           </button>
           <button
             onClick={() => setMode('bulk')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition-all ${
               mode === 'bulk'
-                ? 'bg-brand-500 text-black shadow-glow'
+                ? 'bg-yellow-400 text-black glow-yellow'
                 : 'text-slate-400 hover:text-white'
             }`}
           >
             <Layers className="w-4 h-4" />
-            Multi-Car / Batch (2-3+ Scanners)
+            Multi-Car Batch (2–3+ Tags)
           </button>
         </div>
       </div>
 
       {/* Success Notification Banner */}
       {successCount !== null && (
-        <div className="my-6 p-4 rounded-2xl bg-emerald-950/60 border border-emerald-500/30 flex items-center justify-between gap-3 text-emerald-300 animate-fadeIn">
+        <div className="my-6 p-5 rounded-2xl bg-emerald-950/70 border border-emerald-500/40 flex items-center justify-between gap-3 text-emerald-300 animate-fadeIn shadow-lg">
           <div className="flex items-center gap-3">
             <CheckCircle2 className="w-6 h-6 text-emerald-400 shrink-0" />
             <div>
-              <div className="font-bold text-sm">
-                Successfully Generated {successCount} Smart Scanner{successCount > 1 ? 's' : ''}!
+              <div className="font-bold text-sm text-white">
+                Generated {successCount} Smart Car Tag{successCount > 1 ? 's' : ''}!
               </div>
-              <div className="text-xs text-emerald-400/80">
-                You can preview, download printable sticker PNGs, or test the masked scan link below.
+              <div className="text-xs text-emerald-400 mt-0.5">
+                Saved to your garage below. You can print, download sticker PNGs, or test the masked scan link now.
               </div>
             </div>
           </div>
           <button
             onClick={() => setSuccessCount(null)}
-            className="text-xs font-semibold px-3 py-1 rounded-lg bg-emerald-900/60 hover:bg-emerald-800 text-white"
+            className="text-xs font-bold px-3 py-1.5 rounded-lg bg-emerald-900 hover:bg-emerald-800 text-white"
           >
             Dismiss
           </button>
         </div>
       )}
 
-      {/* MODE 1: SINGLE CAR SCANNER GENERATOR */}
+      {/* SINGLE TAG GENERATOR */}
       {mode === 'single' && (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 pt-6 relative z-10">
-          {/* Form Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-6 relative z-10 items-center">
+          {/* Form */}
           <form onSubmit={handleSingleSubmit} className="lg:col-span-7 space-y-5">
             {/* Vehicle Number Input */}
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5 flex items-center justify-between">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5 flex items-center justify-between">
                 <span>Vehicle Registration Number *</span>
-                <span className="text-[10px] text-brand-400 font-mono">e.g. DL 01 AB 1234 / MH 02 CD 5678</span>
+                <span className="text-[10px] text-yellow-400 font-mono">e.g. DL 01 AB 1234 / MH 02 CD 5678</span>
               </label>
               <div className="relative">
                 <input
                   type="text"
                   required
-                  placeholder="Enter Car / Vehicle Number"
+                  placeholder="ENTER VEHICLE NUMBER"
                   value={singleInput.vehicleNumber}
                   onChange={(e) =>
                     setSingleInput({ ...singleInput, vehicleNumber: formatVehicleNumber(e.target.value) })
                   }
-                  className="w-full bg-slate-900/90 border-2 border-slate-700 focus:border-brand-500 rounded-xl px-4 py-3 text-lg font-mono font-bold text-yellow-400 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-brand-500/20 uppercase transition tracking-wider"
+                  className="w-full bg-slate-900 border-2 border-slate-700 focus:border-yellow-400 rounded-2xl px-4 py-3.5 text-xl font-mono font-black text-yellow-400 placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-yellow-400/10 uppercase transition tracking-wider shadow-inner"
                 />
-                <div className="absolute right-3 top-3.5 px-2 py-0.5 rounded bg-yellow-400 text-black font-extrabold text-[10px] font-mono tracking-wider">
+                <div className="absolute right-3.5 top-3.5 px-2.5 py-1 rounded bg-blue-900 text-white font-black text-[10px] font-mono tracking-wider">
                   IND
                 </div>
               </div>
             </div>
 
-            {/* Mobile Number & Alternate Mobile */}
+            {/* Mobile Numbers */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5">
                   Owner Mobile Number *
                 </label>
                 <div className="relative">
@@ -350,18 +342,18 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
                     placeholder="+91 98765 43210"
                     value={singleInput.phoneNumber}
                     onChange={(e) => setSingleInput({ ...singleInput, phoneNumber: e.target.value })}
-                    className="w-full bg-slate-900/90 border border-slate-700 focus:border-brand-500 rounded-xl pl-10 pr-4 py-3 text-sm font-semibold text-white placeholder:text-slate-600 focus:outline-none transition"
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-yellow-400 rounded-xl pl-10 pr-4 py-3 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none transition shadow-inner"
                   />
                 </div>
-                <div className="text-[10px] text-slate-400 mt-1 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                  Kept 100% private. Masked on scan.
+                <div className="text-[10px] text-emerald-400 font-medium mt-1 flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3" />
+                  Zero Number Leak • Always Masked
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5">
-                  Backup / Alternate Phone <span className="text-slate-500 font-normal">(Optional)</span>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5">
+                  Alternate Phone <span className="text-slate-500 font-normal">(Optional Backup)</span>
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
@@ -370,29 +362,29 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
                     placeholder="+91 98111 22334"
                     value={singleInput.alternatePhone}
                     onChange={(e) => setSingleInput({ ...singleInput, alternatePhone: e.target.value })}
-                    className="w-full bg-slate-900/90 border border-slate-700 focus:border-brand-500 rounded-xl pl-10 pr-4 py-3 text-sm font-semibold text-white placeholder:text-slate-600 focus:outline-none transition"
+                    className="w-full bg-slate-900 border border-slate-700 focus:border-yellow-400 rounded-xl pl-10 pr-4 py-3 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none transition shadow-inner"
                   />
                 </div>
               </div>
             </div>
 
-            {/* Vehicle Model & Type */}
+            {/* Model & Type */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5">
-                  Vehicle Model / Color
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5">
+                  Vehicle Model / Nickname
                 </label>
                 <input
                   type="text"
                   placeholder="e.g. Hyundai Creta (White)"
                   value={singleInput.vehicleModel}
                   onChange={(e) => setSingleInput({ ...singleInput, vehicleModel: e.target.value })}
-                  className="w-full bg-slate-900/90 border border-slate-700 focus:border-brand-500 rounded-xl px-4 py-3 text-sm font-medium text-white placeholder:text-slate-600 focus:outline-none transition"
+                  className="w-full bg-slate-900 border border-slate-700 focus:border-yellow-400 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none transition shadow-inner"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5">
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5">
                   Vehicle Type
                 </label>
                 <select
@@ -400,36 +392,35 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
                   onChange={(e) =>
                     setSingleInput({ ...singleInput, vehicleType: e.target.value as VehicleType })
                   }
-                  className="w-full bg-slate-900/90 border border-slate-700 focus:border-brand-500 rounded-xl px-4 py-3 text-sm font-medium text-white focus:outline-none transition capitalize"
+                  className="w-full bg-slate-900 border border-slate-700 focus:border-yellow-400 rounded-xl px-4 py-3 text-sm font-bold text-white focus:outline-none transition capitalize shadow-inner"
                 >
-                  <option value="car">Sedan / Hatchback</option>
+                  <option value="car">Car / Sedan</option>
                   <option value="suv">SUV / MUV</option>
                   <option value="ev">Electric Vehicle (EV)</option>
                   <option value="bike">Motorcycle / Scooter</option>
-                  <option value="truck">Commercial / Van</option>
                 </select>
               </div>
             </div>
 
-            {/* Badge Visual Theme */}
+            {/* Theme Selector */}
             <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-2">
-                Printable Sticker Style
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-2">
+                Sticker Badge Theme
               </label>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                 {[
-                  { id: 'amber_neon', name: 'Amber Neon', color: 'border-amber-500/60 bg-amber-950/20' },
-                  { id: 'dark_carbon', name: 'Dark Carbon', color: 'border-slate-600 bg-slate-900/80' },
-                  { id: 'cyber_cyan', name: 'Cyber Cyan', color: 'border-cyan-500/60 bg-cyan-950/20' },
-                  { id: 'clean_white', name: 'Clean White', color: 'border-slate-300 bg-slate-100 text-slate-900' },
+                  { id: 'amber_neon', name: 'Gold / Amber', color: 'border-yellow-400 bg-yellow-400/10' },
+                  { id: 'dark_carbon', name: 'Dark Carbon', color: 'border-slate-600 bg-slate-900' },
+                  { id: 'cyber_cyan', name: 'Cyber Cyan', color: 'border-cyan-400 bg-cyan-950/40' },
+                  { id: 'clean_white', name: 'Clean White', color: 'border-slate-300 bg-white text-black' },
                 ].map((t) => (
                   <button
                     key={t.id}
                     type="button"
                     onClick={() => setSingleInput({ ...singleInput, badgeTheme: t.id as BadgeTheme })}
-                    className={`p-2.5 rounded-xl border-2 text-xs font-bold text-center transition-all ${
+                    className={`p-2.5 rounded-xl border-2 text-xs font-black text-center transition-all ${
                       singleInput.badgeTheme === t.id
-                        ? 'ring-2 ring-brand-400 border-brand-500 text-white shadow-glow'
+                        ? 'ring-2 ring-yellow-400 border-yellow-400 text-white glow-yellow'
                         : 'border-slate-800 text-slate-400 hover:text-white'
                     } ${t.color}`}
                   >
@@ -439,33 +430,19 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
               </div>
             </div>
 
-            {/* Parking Status / Note */}
-            <div>
-              <label className="block text-xs font-extrabold uppercase tracking-wider text-slate-300 mb-1.5">
-                Default Parking Note <span className="text-slate-500 font-normal">(Shown to passersby)</span>
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Parked for 15 mins. Please call/WhatsApp if my vehicle is blocking."
-                value={singleInput.statusMessage}
-                onChange={(e) => setSingleInput({ ...singleInput, statusMessage: e.target.value })}
-                className="w-full bg-slate-900/90 border border-slate-700 focus:border-brand-500 rounded-xl px-4 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none transition"
-              />
-            </div>
-
             {/* Submit Button */}
-            <div className="pt-3">
+            <div className="pt-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-brand-500 to-amber-500 hover:from-brand-400 hover:to-amber-400 text-black font-extrabold text-base tracking-wide shadow-glow transition transform active:scale-[0.99] flex items-center justify-center gap-2"
+                className="w-full py-4 px-6 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-base tracking-wide glow-yellow transition transform active:scale-[0.99] flex items-center justify-center gap-2"
               >
                 {loading ? (
                   <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5" />
-                    Generate Smart Car Scanner
+                    Generate Smart Car Tag (Free)
                   </>
                 )}
               </button>
@@ -473,9 +450,9 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
           </form>
 
           {/* Live Preview Side */}
-          <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-2xl bg-slate-950/60 border border-slate-800">
-            <div className="text-xs font-extrabold uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-brand-400 animate-ping" />
+          <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl">
+            <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
               Live Sticker Badge Preview
             </div>
             <PrintableBadge
@@ -486,26 +463,25 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
         </div>
       )}
 
-      {/* MODE 2: MULTI-CAR / BULK GENERATOR */}
+      {/* BULK / MULTI-CAR BATCH GENERATOR */}
       {mode === 'bulk' && (
         <form onSubmit={handleBulkSubmit} className="pt-6 space-y-6 relative z-10">
-          <div className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-4">
+          <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-brand-400" />
-                  Multi-Vehicle Batch Setup
+                  <Layers className="w-4 h-4 text-yellow-400" />
+                  Multi-Car Batch Setup (Family / Fleet)
                 </h3>
                 <p className="text-xs text-slate-400 mt-0.5">
-                  Generate multiple scanners at once (e.g. 2-3 cars for family members or fleet).
+                  Generate multiple tags at once for 2, 3, or more family vehicles.
                 </p>
               </div>
 
-              {/* Owner Info Helper */}
               <div className="flex flex-wrap items-center gap-3">
                 <input
                   type="text"
-                  placeholder="Owner Name (e.g. Rahul)"
+                  placeholder="Family Name (e.g. Rahul)"
                   value={bulkOwnerName}
                   onChange={(e) => setBulkOwnerName(e.target.value)}
                   className="bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
@@ -525,68 +501,59 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
               </div>
             </div>
 
-            {/* Checkbox to use same phone across all cars */}
-            <label className="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer pt-1 border-t border-slate-800">
+            <label className="flex items-center gap-2.5 text-xs text-slate-300 cursor-pointer pt-2 border-t border-slate-800">
               <input
                 type="checkbox"
                 checked={applySamePhone}
                 onChange={(e) => handleToggleSamePhone(e.target.checked)}
-                className="w-4 h-4 rounded text-brand-500 bg-slate-950 border-slate-700 focus:ring-0 focus:ring-offset-0"
+                className="w-4 h-4 rounded text-yellow-400 bg-slate-950 border-slate-700 focus:ring-0"
               />
-              <span>Use the same mobile number for all {bulkRows.length} vehicles (Uncheck if each car has a different driver/number)</span>
+              <span>Use same mobile number for all {bulkRows.length} vehicles</span>
             </label>
           </div>
 
-          {/* Vehicle Rows */}
           <div className="space-y-3">
             {bulkRows.map((row, index) => (
               <div
                 key={row.id}
-                className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 hover:border-slate-700 transition flex flex-col md:flex-row items-start md:items-center gap-3"
+                className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 hover:border-slate-700 transition flex flex-col md:flex-row items-start md:items-center gap-3"
               >
-                {/* Index & Badge */}
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="w-7 h-7 rounded-xl bg-slate-800 flex items-center justify-center text-xs font-mono font-bold text-brand-400">
-                    #{index + 1}
-                  </span>
-                </div>
+                <span className="w-7 h-7 rounded-xl bg-slate-800 flex items-center justify-center text-xs font-mono font-bold text-yellow-400 shrink-0">
+                  #{index + 1}
+                </span>
 
-                {/* Car Number */}
                 <div className="w-full md:w-48 shrink-0">
                   <input
                     type="text"
                     required
-                    placeholder="Car Plate (e.g. DL 01 AB 1234)"
+                    placeholder="Plate (e.g. DL 01 AB 1234)"
                     value={row.vehicleNumber}
                     onChange={(e) => handleUpdateBulkRow(row.id, 'vehicleNumber', e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 focus:border-brand-500 rounded-xl px-3 py-2.5 text-sm font-mono font-bold text-yellow-400 placeholder:text-slate-600 uppercase focus:outline-none"
+                    className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-sm font-mono font-bold text-yellow-400 placeholder:text-slate-600 uppercase focus:outline-none"
                   />
                 </div>
 
-                {/* Mobile Number for this car */}
                 <div className="w-full md:w-48 shrink-0">
                   <input
                     type="tel"
                     required
-                    placeholder="Car Mobile Number"
+                    placeholder="Mobile Number"
                     value={row.phoneNumber}
                     onChange={(e) => handleUpdateBulkRow(row.id, 'phoneNumber', e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 focus:border-brand-500 rounded-xl px-3 py-2.5 text-sm font-semibold text-white placeholder:text-slate-600 focus:outline-none"
+                    className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none"
                   />
                 </div>
 
-                {/* Vehicle Model */}
                 <div className="w-full md:flex-1">
                   <input
                     type="text"
                     placeholder="Model (e.g. Honda City / Creta)"
                     value={row.vehicleModel}
                     onChange={(e) => handleUpdateBulkRow(row.id, 'vehicleModel', e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 focus:border-brand-500 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none"
+                    className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none"
                   />
                 </div>
 
-                {/* Vehicle Type */}
                 <div className="w-full md:w-36 shrink-0">
                   <select
                     value={row.vehicleType}
@@ -600,7 +567,6 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
                   </select>
                 </div>
 
-                {/* Delete Row Button */}
                 <button
                   type="button"
                   onClick={() => handleRemoveBulkRow(row.id)}
@@ -613,28 +579,27 @@ export default function TagGenerator({ onTagsCreated }: TagGeneratorProps) {
             ))}
           </div>
 
-          {/* Add Row & Action Bar */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/10">
             <button
               type="button"
               onClick={handleAddBulkRow}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold transition border border-slate-700"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition border border-slate-700"
             >
-              <Plus className="w-4 h-4 text-brand-400" />
-              + Add Another Vehicle Scanner
+              <Plus className="w-4 h-4 text-yellow-400" />
+              + Add Another Vehicle Tag
             </button>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full sm:w-auto py-3.5 px-8 rounded-xl bg-gradient-to-r from-brand-500 to-amber-500 hover:from-brand-400 text-black font-extrabold text-sm shadow-glow transition transform active:scale-95 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto py-3.5 px-8 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm glow-yellow transition transform active:scale-95 flex items-center justify-center gap-2"
             >
               {loading ? (
                 <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
               ) : (
                 <>
                   <Sparkles className="w-4 h-4" />
-                  Generate All {bulkRows.length} Scanners
+                  Generate All {bulkRows.length} Smart Tags
                 </>
               )}
             </button>
