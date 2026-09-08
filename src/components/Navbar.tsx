@@ -69,7 +69,15 @@ export default function Navbar({
         </div>
 
         {/* Right CTA Button */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          <a
+            href="/admin"
+            className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold transition shadow"
+            title="Merchant & Store Owner Portal"
+          >
+            <span>Store Portal</span>
+          </a>
+
           <button
             onClick={onOpenCheckout}
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs glow-yellow transition active:scale-95 shadow-md"

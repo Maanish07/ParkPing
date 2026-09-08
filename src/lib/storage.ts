@@ -1,10 +1,11 @@
 import { VehicleTag, PingLog, CreateTagInput } from './types';
 import { generateTagId, formatVehicleNumber } from './mask';
 
-// Default initial vehicle tags for immediate demonstration
+// Default initial vehicle tags for immediate demonstration with order fulfillment details
 const INITIAL_TAGS: VehicleTag[] = [
   {
     id: 'PP-48291',
+    orderId: 'ORD-1092',
     vehicleNumber: 'DL 01 AB 1234',
     phoneNumber: '+91 98765 43210',
     alternatePhone: '+91 98111 22334',
@@ -13,43 +14,75 @@ const INITIAL_TAGS: VehicleTag[] = [
     vehicleType: 'suv',
     status: 'active',
     statusMessage: 'Parked in B-2 slot. Call if emergency.',
-    createdAt: new Date(Date.now() - 86400000 * 5).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
     scanCount: 14,
     lastScannedAt: new Date(Date.now() - 3600000 * 2).toISOString(),
     badgeTheme: 'amber_neon',
+    fulfillmentStatus: 'pending_print',
+    paymentStatus: 'paid',
+    price: 399,
+    shippingAddress: {
+      fullName: 'Rahul Sharma',
+      street: 'Flat 402, Sunshine Apartments, Sector 14',
+      city: 'Gurgaon',
+      state: 'Haryana',
+      pincode: '122001',
+    },
   },
   {
     id: 'PP-91304',
+    orderId: 'ORD-1093',
     vehicleNumber: 'MH 02 CD 5678',
-    phoneNumber: '+91 98765 43210', // Same owner, second car!
+    phoneNumber: '+91 98765 43210',
     alternatePhone: '',
     ownerName: 'Rahul Sharma',
     vehicleModel: 'Honda City (Black)',
     vehicleType: 'car',
     status: 'active',
     statusMessage: 'Available for urgent relocation.',
-    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
-    updatedAt: new Date(Date.now() - 86400000 * 1).toISOString(),
+    createdAt: new Date(Date.now() - 86400000 * 1).toISOString(),
+    updatedAt: new Date().toISOString(),
     scanCount: 6,
     lastScannedAt: new Date(Date.now() - 3600000 * 8).toISOString(),
     badgeTheme: 'dark_carbon',
+    fulfillmentStatus: 'pending_print',
+    paymentStatus: 'paid',
+    price: 399,
+    shippingAddress: {
+      fullName: 'Rahul Sharma',
+      street: 'Flat 402, Sunshine Apartments, Sector 14',
+      city: 'Gurgaon',
+      state: 'Haryana',
+      pincode: '122001',
+    },
   },
   {
     id: 'PP-33921',
+    orderId: 'ORD-1088',
     vehicleNumber: 'KA 03 EF 9012',
-    phoneNumber: '+91 98222 33445', // Family member's car
+    phoneNumber: '+91 98222 33445',
     alternatePhone: '+91 98765 43210',
     ownerName: 'Priya Sharma',
     vehicleModel: 'Tata Nexon EV (Blue)',
     vehicleType: 'ev',
     status: 'dnd',
     statusMessage: 'Parked till 6 PM. Message via WhatsApp.',
-    createdAt: new Date(Date.now() - 86400000 * 1).toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: new Date(Date.now() - 86400000 * 4).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
     scanCount: 2,
     lastScannedAt: new Date(Date.now() - 3600000 * 18).toISOString(),
     badgeTheme: 'cyber_cyan',
+    fulfillmentStatus: 'dispatched',
+    paymentStatus: 'paid',
+    price: 399,
+    shippingAddress: {
+      fullName: 'Priya Sharma',
+      street: 'Villa 12, Palm Meadows, Whitefield',
+      city: 'Bengaluru',
+      state: 'Karnataka',
+      pincode: '560066',
+    },
   }
 ];
 
@@ -91,6 +124,7 @@ export function getTagById(id: string): VehicleTag | undefined {
 export function createTag(input: CreateTagInput): VehicleTag {
   const newTag: VehicleTag = {
     id: generateTagId(),
+    orderId: input.orderId || `ORD-${Math.floor(1000 + Math.random() * 9000)}`,
     vehicleNumber: formatVehicleNumber(input.vehicleNumber),
     phoneNumber: input.phoneNumber.trim(),
     alternatePhone: input.alternatePhone?.trim() || '',
@@ -103,6 +137,10 @@ export function createTag(input: CreateTagInput): VehicleTag {
     updatedAt: new Date().toISOString(),
     scanCount: 0,
     badgeTheme: input.badgeTheme || 'amber_neon',
+    fulfillmentStatus: input.fulfillmentStatus || 'pending_print',
+    shippingAddress: input.shippingAddress,
+    paymentStatus: input.paymentStatus || 'paid',
+    price: input.price || 399,
   };
 
   memoryTags.unshift(newTag);
@@ -110,7 +148,11 @@ export function createTag(input: CreateTagInput): VehicleTag {
 }
 
 export function createBulkTags(inputs: CreateTagInput[]): VehicleTag[] {
-  return inputs.map(input => createTag(input));
+  const commonOrderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+  return inputs.map(input => createTag({
+    ...input,
+    orderId: input.orderId || commonOrderId,
+  }));
 }
 
 export function updateTag(id: string, updates: Partial<VehicleTag>): VehicleTag | null {

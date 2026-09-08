@@ -148,8 +148,9 @@ export default function CheckoutOrderModal({
   const handleCompleteOrder = async () => {
     setProcessing(true);
     try {
-      const activeSlots = slots.slice(0, tagCount);
+      const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
       const items = activeSlots.map((slot) => ({
+        orderId,
         vehicleNumber: slot.vehicleNumber,
         phoneNumber: slot.mobileNumber,
         ownerName: address.fullName,
@@ -157,6 +158,10 @@ export default function CheckoutOrderModal({
         vehicleType: slot.details?.vehicleType || 'car',
         badgeTheme: 'amber_neon' as BadgeTheme,
         statusMessage: 'Parked vehicle. Call / WhatsApp if my car requires attention.',
+        shippingAddress: address,
+        paymentStatus: paymentMethod,
+        fulfillmentStatus: 'pending_print' as const,
+        price: getPrice() / tagCount,
       }));
 
       const res = await fetch('/api/tags', {

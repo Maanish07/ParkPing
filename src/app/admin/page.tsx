@@ -1,0 +1,1094 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { VehicleTag, TagStatus, BadgeTheme, VehicleType, FulfillmentStatus } from '@/lib/types';
+import { formatVehicleNumber } from '@/lib/mask';
+import { VehicleDetails } from '@/lib/vahan';
+import TagCard from '@/components/TagCard';
+import PrintableBadge from '@/components/PrintableBadge';
+import BulkPrintModal from '@/components/BulkPrintModal';
+import ActivityLogsModal from '@/components/ActivityLogsModal';
+import QRCodeCanvas from '@/components/QRCodeCanvas';
+import { 
+  Store, 
+  Plus, 
+  Layers, 
+  Printer, 
+  Search, 
+  RefreshCw, 
+  Clock, 
+  ShieldCheck, 
+  Car, 
+  Phone, 
+  CheckCircle2, 
+  Sparkles, 
+  ArrowLeft, 
+  Trash2, 
+  LayoutGrid, 
+  Table as TableIcon,
+  ExternalLink,
+  X,
+  ShoppingBag,
+  Zap,
+  Truck,
+  PackageCheck,
+  Check,
+  MapPin,
+  CreditCard,
+  Send,
+  AlertCircle
+} from 'lucide-react';
+
+export default function MerchantAdminPage() {
+  const [tags, setTags] = useState<VehicleTag[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [fulfillmentFilter, setFulfillmentFilter] = useState<'all' | FulfillmentStatus>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | TagStatus>('all');
+
+  // Active Main Tab: 'orders_queue' (Default) | 'inventory' | 'create_single' | 'create_bulk'
+  const [activeTab, setActiveTab] = useState<'orders_queue' | 'inventory' | 'create_single' | 'create_bulk'>('orders_queue');
+
+  // Modals state
+  const [selectedTagForPrint, setSelectedTagForPrint] = useState<VehicleTag | null>(null);
+  const [showBulkPrintModal, setShowBulkPrintModal] = useState(false);
+  const [showLogsModal, setShowLogsModal] = useState(false);
+  const [selectedTagIdsForBatch, setSelectedTagIdsForBatch] = useState<string[]>([]);
+  const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
+
+  // Manual Walk-In Single Tag Generator State
+  const [singlePlate, setSinglePlate] = useState('');
+  const [singlePhone, setSinglePhone] = useState('');
+  const [singleAlternatePhone, setSingleAlternatePhone] = useState('');
+  const [singleOwnerName, setSingleOwnerName] = useState('');
+  const [singleVehicleType, setSingleVehicleType] = useState<VehicleType>('car');
+  const [singleVehicleModel, setSingleVehicleModel] = useState('');
+  const [singleTheme, setSingleTheme] = useState<BadgeTheme>('amber_neon');
+  const [singleNote, setSingleNote] = useState('Scan with camera to contact owner if vehicle requires attention.');
+  const [singleStreet, setSingleStreet] = useState('');
+  const [singleCity, setSingleCity] = useState('New Delhi');
+  const [singlePincode, setSinglePincode] = useState('110001');
+  const [singleVahanLoading, setSingleVahanLoading] = useState(false);
+  const [singleVahanDetails, setSingleVahanDetails] = useState<VehicleDetails | null>(null);
+  const [isCreatingSingle, setIsCreatingSingle] = useState(false);
+
+  // Manual Bulk Generator State
+  interface BulkRow {
+    id: string;
+    vehicleNumber: string;
+    phoneNumber: string;
+    vehicleModel: string;
+    vehicleType: VehicleType;
+  }
+  const [bulkRows, setBulkRows] = useState<BulkRow[]>([
+    { id: '1', vehicleNumber: '', phoneNumber: '', vehicleModel: '', vehicleType: 'car' },
+    { id: '2', vehicleNumber: '', phoneNumber: '', vehicleModel: '', vehicleType: 'suv' },
+  ]);
+  const [bulkGlobalPhone, setBulkGlobalPhone] = useState('');
+  const [applyBulkGlobalPhone, setApplyBulkGlobalPhone] = useState(true);
+  const [isCreatingBulk, setIsCreatingBulk] = useState(false);
+
+  // Fetch Tags from API
+  const fetchTags = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/tags');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.tags)) {
+        setTags(data.tags);
+      }
+    } catch (e) {
+      console.error('Error loading tags:', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTags();
+  }, []);
+
+  // Update Fulfillment Status (e.g. pending_print -> dispatched)
+  const handleUpdateFulfillment = async (tagId: string, newFulfillmentStatus: FulfillmentStatus) => {
+    setStatusUpdatingId(tagId);
+    try {
+      const res = await fetch(`/api/tags/${tagId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fulfillmentStatus: newFulfillmentStatus }),
+      });
+      const data = await res.json();
+      if (data.success && data.tag) {
+        setTags(tags.map((t) => (t.id === tagId ? data.tag : t)));
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setStatusUpdatingId(null);
+    }
+  };
+
+  // Vahan Auto-Lookup for Manual Form
+  const handleSinglePlateChange = async (val: string) => {
+    const formatted = formatVehicleNumber(val);
+    setSinglePlate(formatted);
+
+    const clean = formatted.replace(/\s+/g, '');
+    if (clean.length >= 8) {
+      setSingleVahanLoading(true);
+      try {
+        const res = await fetch(`/api/vehicle-lookup?plate=${encodeURIComponent(formatted)}`);
+        const data = await res.json();
+        if (data.success && data.vehicle) {
+          setSingleVahanDetails(data.vehicle);
+          setSingleVehicleModel(data.vehicle.model);
+          setSingleVehicleType(data.vehicle.vehicleType);
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setSingleVahanLoading(false);
+      }
+    } else {
+      setSingleVahanDetails(null);
+    }
+  };
+
+  // Submit Manual Single Tag
+  const handleCreateSingle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!singlePlate.trim() || !singlePhone.trim()) {
+      alert('Vehicle Number and Customer Phone Number are required!');
+      return;
+    }
+
+    setIsCreatingSingle(true);
+    try {
+      const res = await fetch('/api/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          vehicleNumber: singlePlate,
+          phoneNumber: singlePhone,
+          alternatePhone: singleAlternatePhone,
+          ownerName: singleOwnerName || 'Walk-In Customer',
+          vehicleModel: singleVehicleModel || singleVahanDetails?.model || 'Vehicle',
+          vehicleType: singleVehicleType,
+          badgeTheme: singleTheme,
+          statusMessage: singleNote,
+          fulfillmentStatus: 'pending_print',
+          paymentStatus: 'paid',
+          shippingAddress: singleStreet ? {
+            fullName: singleOwnerName || 'Customer',
+            street: singleStreet,
+            city: singleCity,
+            state: 'State',
+            pincode: singlePincode,
+          } : undefined,
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && data.tag) {
+        setTags([data.tag, ...tags]);
+        setSelectedTagForPrint(data.tag);
+        // Reset form
+        setSinglePlate('');
+        setSinglePhone('');
+        setSingleAlternatePhone('');
+        setSingleOwnerName('');
+        setSingleVehicleModel('');
+        setSingleStreet('');
+        setSingleVahanDetails(null);
+        setActiveTab('orders_queue');
+      } else {
+        alert(data.error || 'Failed to create tag');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Network error while creating tag');
+    } finally {
+      setIsCreatingSingle(false);
+    }
+  };
+
+  // Bulk Form Handlers
+  const handleAddBulkRow = () => {
+    setBulkRows([
+      ...bulkRows,
+      {
+        id: Date.now().toString(),
+        vehicleNumber: '',
+        phoneNumber: applyBulkGlobalPhone ? bulkGlobalPhone : '',
+        vehicleModel: '',
+        vehicleType: 'car',
+      },
+    ]);
+  };
+
+  const handleRemoveBulkRow = (id: string) => {
+    if (bulkRows.length <= 1) return;
+    setBulkRows(bulkRows.filter((r) => r.id !== id));
+  };
+
+  const handleUpdateBulkRow = (id: string, field: keyof BulkRow, val: string) => {
+    setBulkRows(
+      bulkRows.map((r) => {
+        if (r.id === id) {
+          if (field === 'vehicleNumber') {
+            return { ...r, vehicleNumber: formatVehicleNumber(val) };
+          }
+          return { ...r, [field]: val };
+        }
+        return r;
+      })
+    );
+  };
+
+  const handleCreateBulk = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const validItems = bulkRows.filter((r) => r.vehicleNumber.trim() && r.phoneNumber.trim());
+    if (validItems.length === 0) {
+      alert('Please fill out at least one vehicle with Vehicle Number and Mobile Number');
+      return;
+    }
+
+    setIsCreatingBulk(true);
+    try {
+      const res = await fetch('/api/tags', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          items: validItems.map((r) => ({
+            vehicleNumber: r.vehicleNumber,
+            phoneNumber: r.phoneNumber,
+            vehicleModel: r.vehicleModel || 'Vehicle',
+            vehicleType: r.vehicleType,
+            ownerName: 'Bulk Fleet Order',
+            badgeTheme: 'amber_neon',
+            fulfillmentStatus: 'pending_print',
+            paymentStatus: 'paid',
+          })),
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success && Array.isArray(data.tags)) {
+        setTags([...data.tags, ...tags]);
+        setSelectedTagIdsForBatch(data.tags.map((t: VehicleTag) => t.id));
+        setShowBulkPrintModal(true);
+        setActiveTab('orders_queue');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsCreatingBulk(false);
+    }
+  };
+
+  const handleTagUpdated = (updated: VehicleTag) => {
+    setTags(tags.map((t) => (t.id === updated.id ? updated : t)));
+  };
+
+  const handleTagDeleted = (id: string) => {
+    setTags(tags.filter((t) => t.id !== id));
+  };
+
+  // Filtered Orders / Tags
+  const pendingOrders = tags.filter((t) => (t.fulfillmentStatus || 'pending_print') === 'pending_print');
+  const dispatchedOrders = tags.filter((t) => t.fulfillmentStatus === 'dispatched' || t.fulfillmentStatus === 'delivered');
+
+  const filteredOrders = tags.filter((t) => {
+    const query = searchQuery.toLowerCase().trim();
+    const matchesQuery =
+      !query ||
+      t.vehicleNumber.toLowerCase().includes(query) ||
+      t.phoneNumber.includes(query) ||
+      (t.orderId && t.orderId.toLowerCase().includes(query)) ||
+      t.id.toLowerCase().includes(query) ||
+      (t.ownerName && t.ownerName.toLowerCase().includes(query)) ||
+      (t.shippingAddress && t.shippingAddress.city.toLowerCase().includes(query));
+
+    const matchesFulfillment =
+      fulfillmentFilter === 'all' || (t.fulfillmentStatus || 'pending_print') === fulfillmentFilter;
+    const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
+
+    return matchesQuery && matchesFulfillment && matchesStatus;
+  });
+
+  // Batch Print All Pending
+  const handleBatchPrintAllPending = () => {
+    const idsToPrint = pendingOrders.map((t) => t.id);
+    if (idsToPrint.length === 0) {
+      alert('No pending orders to print. All current orders have been dispatched!');
+      return;
+    }
+    setSelectedTagIdsForBatch(idsToPrint);
+    setShowBulkPrintModal(true);
+  };
+
+  return (
+    <div className="min-h-screen bg-[#06090f] text-slate-100 flex flex-col justify-between selection:bg-yellow-400 selection:text-black">
+      {/* Top Merchant Navigation Header */}
+      <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/10 px-4 sm:px-8 py-3.5 no-print">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+          {/* Logo & Portal Identity */}
+          <div className="flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-3 group">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-yellow-300 via-yellow-400 to-amber-500 text-black font-black text-lg flex items-center justify-center shadow-md group-hover:scale-105 transition">
+                PP
+              </div>
+              <div>
+                <div className="font-black text-lg sm:text-xl tracking-tight text-white flex items-center gap-2">
+                  <span>PARKPING</span>
+                  <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-yellow-400 text-black shadow-sm">
+                    STORE OWNER PORTAL
+                  </span>
+                </div>
+                <div className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
+                  <Store className="w-3 h-3 text-yellow-400" />
+                  <span>Automatic QR Order Fulfillment & Physical Sticker Dispatch</span>
+                </div>
+              </div>
+            </Link>
+          </div>
+
+          {/* Right Header Controls */}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowLogsModal(true)}
+              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-bold transition shadow"
+            >
+              <Clock className="w-3.5 h-3.5 text-yellow-400" />
+              <span>Live Scan Logs</span>
+            </button>
+
+            <Link
+              href="/"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-yellow-400 border border-yellow-400/30 text-xs font-black transition active:scale-95 shadow"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span>Customer Storefront</span>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Merchant Portal Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 flex-1 w-full space-y-8">
+        {/* KPI OVERVIEW CARDS */}
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Pending to Print KPI */}
+          <div className="glass-card rounded-3xl p-5 border border-yellow-400/30 bg-gradient-to-br from-yellow-400/5 to-transparent flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase font-bold text-yellow-400 tracking-wider flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
+                Pending to Print
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+                {pendingOrders.length}{' '}
+                <span className="text-xs text-yellow-400 font-semibold font-mono">Orders</span>
+              </div>
+              <div className="text-[11px] text-slate-400 mt-1">QR Auto-Generated · Ready to Print</div>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-yellow-400/15 border border-yellow-400/40 text-yellow-400 flex items-center justify-center font-bold shadow-glow">
+              <Printer className="w-6 h-6" />
+            </div>
+          </div>
+
+          {/* Dispatched KPI */}
+          <div className="glass-card rounded-3xl p-5 border border-white/10 flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase font-bold text-slate-400 tracking-wider">
+                Dispatched & Delivered
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
+                {dispatchedOrders.length}{' '}
+                <span className="text-xs text-slate-400 font-semibold">Stickers</span>
+              </div>
+              <div className="text-[11px] text-emerald-400 font-medium mt-1">Shipped via Express Post</div>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold">
+              <Truck className="w-6 h-6" />
+            </div>
+          </div>
+
+          {/* Active Relays KPI */}
+          <div className="glass-card rounded-3xl p-5 border border-white/10 flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase font-bold text-slate-400 tracking-wider">
+                Active Vehicle Tags
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-cyan-400 mt-1">
+                {tags.length} <span className="text-xs text-slate-400 font-semibold">Total</span>
+              </div>
+              <div className="text-[11px] text-slate-400 mt-1">100% Number Masking Active</div>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-bold">
+              <ShieldCheck className="w-6 h-6" />
+            </div>
+          </div>
+
+          {/* Total Revenue KPI */}
+          <div className="glass-card rounded-3xl p-5 border border-white/10 flex items-center justify-between">
+            <div>
+              <div className="text-xs uppercase font-bold text-slate-400 tracking-wider">
+                Total Orders Value
+              </div>
+              <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+                ₹{(tags.length * 399).toLocaleString()}
+              </div>
+              <div className="text-[11px] text-slate-400 mt-1">Online & Walk-In Payments</div>
+            </div>
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-yellow-400 flex items-center justify-center font-bold">
+              <ShoppingBag className="w-6 h-6" />
+            </div>
+          </div>
+        </section>
+
+        {/* WORKFLOW BANNER: EXPLAINING AUTO-GENERATION & ADMIN PRINTING */}
+        <section className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-yellow-400 text-black flex items-center justify-center shrink-0 mt-0.5 font-bold">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="font-bold text-sm text-white flex items-center gap-2">
+                <span>Automatic QR Tag Generation is Live</span>
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/40">
+                  Zero Manual Entry Needed
+                </span>
+              </div>
+              <p className="text-xs text-slate-400 mt-0.5">
+                When customers place an order on your storefront, their vehicle specs and QR codes are <strong>automatically generated and ready below</strong>. You only need to click <strong>&ldquo;Print 3M Vinyl Sticker&rdquo;</strong> and dispatch it to their shipping address!
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={handleBatchPrintAllPending}
+            disabled={pendingOrders.length === 0}
+            className="px-5 py-3 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs glow-yellow transition flex items-center justify-center gap-2 shrink-0 active:scale-95 disabled:opacity-40"
+          >
+            <Printer className="w-4 h-4" />
+            Batch Print All {pendingOrders.length} Pending Stickers (A4 Sheet)
+          </button>
+        </section>
+
+        {/* MERCHANT TAB CONTROLLER */}
+        <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/10">
+          <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-slate-900 border border-slate-800">
+            <button
+              onClick={() => setActiveTab('orders_queue')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition ${
+                activeTab === 'orders_queue'
+                  ? 'bg-yellow-400 text-black shadow-md glow-yellow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <PackageCheck className="w-3.5 h-3.5" />
+              <span>Orders to Print & Dispatch ({pendingOrders.length} Pending)</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('inventory')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition ${
+                activeTab === 'inventory'
+                  ? 'bg-yellow-400 text-black shadow-md glow-yellow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              <span>All Registered Vehicles ({tags.length})</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('create_single')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition ${
+                activeTab === 'create_single'
+                  ? 'bg-yellow-400 text-black shadow-md glow-yellow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>Walk-In Tag Generator</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('create_bulk')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition ${
+                activeTab === 'create_bulk'
+                  ? 'bg-yellow-400 text-black shadow-md glow-yellow'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Bulk Fleet Generator</span>
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              onClick={fetchTags}
+              disabled={loading}
+              className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition"
+              title="Refresh orders list"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        </section>
+
+        {/* TAB 1: ORDERS FULFILLMENT & PRINT QUEUE */}
+        {activeTab === 'orders_queue' && (
+          <div className="space-y-6 animate-fadeIn">
+            {/* Search & Fulfillment Filters */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-3xl bg-slate-950 border border-slate-800">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <input
+                  type="text"
+                  placeholder="Search by Order ID (ORD-1092), Vehicle Number, Customer Phone, City..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-slate-900 border border-slate-800 focus:border-yellow-400 rounded-2xl pl-10 pr-4 py-2.5 text-xs font-bold text-white placeholder:text-slate-500 focus:outline-none transition shadow-inner"
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-3.5 top-3 text-slate-500 hover:text-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <select
+                  value={fulfillmentFilter}
+                  onChange={(e) => setFulfillmentFilter(e.target.value as any)}
+                  className="bg-slate-900 border border-slate-800 text-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"
+                >
+                  <option value="all">All Orders ({tags.length})</option>
+                  <option value="pending_print">Pending Print ({pendingOrders.length})</option>
+                  <option value="dispatched">Dispatched ({dispatchedOrders.length})</option>
+                </select>
+              </div>
+            </div>
+
+            {/* Orders Cards List */}
+            {loading ? (
+              <div className="text-center py-20 text-slate-500">
+                <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                Loading orders queue...
+              </div>
+            ) : filteredOrders.length === 0 ? (
+              <div className="text-center py-20 glass-panel rounded-3xl border border-white/10 p-8">
+                <PackageCheck className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                <h4 className="text-lg font-bold text-white">No orders match this filter</h4>
+                <p className="text-xs text-slate-400 mt-1">All current orders are fulfilled or try changing search criteria.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {filteredOrders.map((tag) => {
+                  const isPending = (tag.fulfillmentStatus || 'pending_print') === 'pending_print';
+                  const scanUrl = typeof window !== 'undefined' ? `${window.location.origin}/p/${tag.id}` : `/p/${tag.id}`;
+
+                  return (
+                    <div
+                      key={tag.id}
+                      className={`glass-card rounded-3xl p-6 border transition-all shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 ${
+                        isPending
+                          ? 'border-yellow-400/40 bg-slate-950/90'
+                          : 'border-white/10 bg-slate-950/50 opacity-90'
+                      }`}
+                    >
+                      {/* Left Column: Order & Customer Details */}
+                      <div className="flex items-start gap-4 flex-1">
+                        {/* QR Code Preview Thumbnail */}
+                        <div className="shrink-0 bg-white p-2 rounded-2xl shadow-md border border-slate-200 flex flex-col items-center">
+                          <QRCodeCanvas value={scanUrl} size={76} level="M" />
+                          <span className="text-[8px] font-black text-slate-900 uppercase tracking-tight mt-1">
+                            Live QR
+                          </span>
+                        </div>
+
+                        {/* Customer & Vehicle Info */}
+                        <div className="space-y-1.5 flex-1 min-w-0">
+                          {/* Order Header Line */}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-mono font-black text-xs px-2.5 py-0.5 rounded-lg bg-yellow-400 text-black">
+                              {tag.orderId || tag.id}
+                            </span>
+                            
+                            {isPending ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-yellow-400/15 text-yellow-400 border border-yellow-400/30">
+                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-ping" />
+                                Ready to Print Sticker
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-500/30">
+                                <CheckCircle2 className="w-3 h-3" />
+                                Dispatched / Shipped
+                              </span>
+                            )}
+
+                            <span className="text-[11px] text-slate-500 font-mono">
+                              Tag: {tag.id}
+                            </span>
+                          </div>
+
+                          {/* Indian Vehicle Plate Look */}
+                          <div className="flex items-center gap-3 pt-1">
+                            <div className="inline-flex items-center rounded-lg border-2 border-black bg-yellow-400 text-black shadow overflow-hidden">
+                              <span className="bg-blue-900 text-white px-1.5 py-0.5 text-[8px] font-black leading-none border-r border-black">
+                                IND
+                              </span>
+                              <span className="py-0.5 px-2 text-sm font-black font-mono tracking-wider">
+                                {tag.vehicleNumber}
+                              </span>
+                            </div>
+
+                            <span className="text-xs font-bold text-white truncate">
+                              {tag.vehicleModel || 'Vehicle'}
+                            </span>
+                          </div>
+
+                          {/* Customer & Mobile */}
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300 pt-0.5">
+                            <span className="font-semibold text-white">
+                              👤 {tag.ownerName || 'Customer'}
+                            </span>
+                            <span className="text-slate-600">•</span>
+                            <span className="font-mono font-bold text-yellow-400 flex items-center gap-1">
+                              <Phone className="w-3 h-3 text-slate-500" />
+                              {tag.phoneNumber}
+                            </span>
+                            <span className="text-slate-600">•</span>
+                            <span className="text-[11px] text-emerald-400 font-bold">
+                              ₹{tag.price || 399} ({tag.paymentStatus === 'cod' ? 'COD' : 'Paid Online'})
+                            </span>
+                          </div>
+
+                          {/* Shipping Address */}
+                          {tag.shippingAddress ? (
+                            <div className="text-[11px] text-slate-400 flex items-start gap-1.5 pt-1">
+                              <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
+                              <span>
+                                {tag.shippingAddress.street}, {tag.shippingAddress.city}, {tag.shippingAddress.state} -{' '}
+                                <strong className="text-slate-300 font-mono">{tag.shippingAddress.pincode}</strong>
+                              </span>
+                            </div>
+                          ) : (
+                            <div className="text-[11px] text-slate-500 italic">
+                              Direct / Walk-In Generation
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Right Column: Store Owner Action Buttons */}
+                      <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-white/10 shrink-0">
+                        {/* Primary Print Button */}
+                        <button
+                          onClick={() => setSelectedTagForPrint(tag)}
+                          className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs glow-yellow transition flex items-center justify-center gap-2 active:scale-95 shadow-md"
+                        >
+                          <Printer className="w-4 h-4" />
+                          <span>Print 3M Sticker</span>
+                        </button>
+
+                        {/* Dispatch Toggle Button */}
+                        {isPending ? (
+                          <button
+                            onClick={() => handleUpdateFulfillment(tag.id, 'dispatched')}
+                            disabled={statusUpdatingId === tag.id}
+                            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-900 hover:bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-xs font-bold transition flex items-center justify-center gap-1.5"
+                          >
+                            <Truck className="w-3.5 h-3.5" />
+                            <span>Mark as Dispatched</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleUpdateFulfillment(tag.id, 'pending_print')}
+                            disabled={statusUpdatingId === tag.id}
+                            className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-slate-900 text-slate-400 hover:text-white border border-slate-800 text-[11px] font-semibold transition"
+                          >
+                            Move to Pending Print
+                          </button>
+                        )}
+
+                        {/* Test Scan link */}
+                        <a
+                          href={`/p/${tag.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1 font-bold"
+                        >
+                          <ExternalLink className="w-3 h-3" /> Test Passerby Scan
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: ALL REGISTERED VEHICLES DIRECTORY */}
+        {activeTab === 'inventory' && (
+          <div className="space-y-6 animate-fadeIn">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {tags.map((tag) => (
+                <TagCard
+                  key={tag.id}
+                  tag={tag}
+                  onTagUpdated={handleTagUpdated}
+                  onTagDeleted={handleTagDeleted}
+                  onSelectPrint={(t) => setSelectedTagForPrint(t)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: WALK-IN MANUAL GENERATOR */}
+        {activeTab === 'create_single' && (
+          <div className="glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl relative overflow-hidden animate-fadeIn">
+            <div className="max-w-2xl pb-6 border-b border-white/10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 text-xs font-black uppercase tracking-wider mb-2">
+                <Sparkles className="w-3.5 h-3.5" />
+                Walk-In Customer Studio
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white">
+                Generate Smart Tag for Walk-In Customer
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Enter vehicle plate number to auto-fetch Vahan RTO details, link the customer&apos;s phone number, and print the sticker instantly.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-8 items-start">
+              <form onSubmit={handleCreateSingle} className="lg:col-span-7 space-y-5">
+                {/* Vehicle Plate Input */}
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5 flex items-center justify-between">
+                    <span>Vehicle Registration Number *</span>
+                    {singleVahanLoading && (
+                      <span className="text-[10px] text-cyan-400 font-bold flex items-center gap-1">
+                        <div className="w-2.5 h-2.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                        Fetching Vahan RTO details...
+                      </span>
+                    )}
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. DL 01 AB 1234 or MH 12 AB 9999"
+                      value={singlePlate}
+                      onChange={(e) => handleSinglePlateChange(e.target.value)}
+                      className="w-full bg-slate-900 border-2 border-slate-700 focus:border-yellow-400 rounded-2xl px-4 py-3 text-lg font-mono font-black text-yellow-400 placeholder:text-slate-600 uppercase focus:outline-none transition shadow-inner"
+                    />
+                    <div className="absolute right-3.5 top-3.5 px-2.5 py-1 rounded bg-blue-900 text-white font-black text-[10px] font-mono tracking-wider">
+                      IND
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vahan Details Auto-Card */}
+                {singleVahanDetails && (
+                  <div className="p-4 rounded-2xl bg-slate-900 border border-emerald-500/40 flex items-center justify-between gap-3 text-xs animate-fadeIn shadow-md">
+                    <div>
+                      <div className="font-bold text-white flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                        <span>{singleVahanDetails.model}</span>
+                        <span className="text-[10px] text-slate-400 font-normal">({singleVahanDetails.color})</span>
+                      </div>
+                      <div className="text-[11px] text-slate-400 mt-1">
+                        {singleVahanDetails.rtoLocation} • Fuel: <strong className="text-yellow-400">{singleVahanDetails.fuelType}</strong>
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/50 shrink-0">
+                      ✓ RTO Verified
+                    </span>
+                  </div>
+                )}
+
+                {/* Customer Details Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5">
+                      Customer Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Rahul Sharma"
+                      value={singleOwnerName}
+                      onChange={(e) => setSingleOwnerName(e.target.value)}
+                      className="w-full bg-slate-900 border border-slate-700 focus:border-yellow-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white placeholder:text-slate-600 focus:outline-none transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5">
+                      Customer Mobile Number *
+                    </label>
+                    <div className="relative">
+                      <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                      <input
+                        type="tel"
+                        required
+                        placeholder="+91 98765 43210"
+                        value={singlePhone}
+                        onChange={(e) => setSinglePhone(e.target.value)}
+                        className="w-full bg-slate-900 border border-slate-700 focus:border-yellow-400 rounded-xl pl-9 pr-3.5 py-2.5 text-xs font-bold text-white placeholder:text-slate-600 focus:outline-none transition"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sticker Theme Selector */}
+                <div>
+                  <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5">
+                    Sticker Design Theme:
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'amber_neon', name: 'Amber Neon' },
+                      { id: 'dark_carbon', name: 'Dark Carbon' },
+                      { id: 'cyber_cyan', name: 'Cyber Cyan' },
+                      { id: 'clean_white', name: 'Clean White' },
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => setSingleTheme(t.id as BadgeTheme)}
+                        className={`p-2.5 rounded-xl border-2 text-xs font-bold capitalize transition ${
+                          singleTheme === t.id
+                            ? 'border-yellow-400 bg-yellow-400/15 text-yellow-400 shadow-md'
+                            : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
+                        }`}
+                      >
+                        {t.name}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Submit Action */}
+                <div className="pt-2">
+                  <button
+                    type="submit"
+                    disabled={isCreatingSingle}
+                    className="w-full py-4 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm tracking-wide glow-yellow transition flex items-center justify-center gap-2 active:scale-95 shadow-xl disabled:opacity-50"
+                  >
+                    {isCreatingSingle ? (
+                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4" />
+                        Generate & Open Print Modal
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              {/* Right Live Sticker Preview */}
+              <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl">
+                <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
+                  Live Sticker 300 DPI Preview
+                </div>
+                <PrintableBadge
+                  tag={{
+                    id: 'PP-WALKIN',
+                    vehicleNumber: singlePlate ? formatVehicleNumber(singlePlate) : 'DL 01 AB 1234',
+                    phoneNumber: singlePhone || '+91 98765 43210',
+                    ownerName: singleOwnerName || 'Customer',
+                    vehicleModel: singleVehicleModel || singleVahanDetails?.model || 'Hyundai Creta',
+                    vehicleType: singleVehicleType,
+                    status: 'active',
+                    createdAt: new Date().toISOString(),
+                    updatedAt: new Date().toISOString(),
+                    scanCount: 0,
+                    badgeTheme: singleTheme,
+                  }}
+                  compact
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 4: BULK FLEET GENERATOR */}
+        {activeTab === 'create_bulk' && (
+          <div className="glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl relative overflow-hidden animate-fadeIn">
+            <div className="max-w-2xl pb-6 border-b border-white/10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-black uppercase tracking-wider mb-2">
+                <Layers className="w-3.5 h-3.5" />
+                Fleet & Multi-Car Bulk Generator
+              </div>
+              <h2 className="text-2xl sm:text-3xl font-black text-white">
+                Generate Multiple Vehicle Tags at Once
+              </h2>
+            </div>
+
+            <form onSubmit={handleCreateBulk} className="pt-6 space-y-6">
+              <div className="space-y-3">
+                {bulkRows.map((row, index) => (
+                  <div
+                    key={row.id}
+                    className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col md:flex-row items-start md:items-center gap-3"
+                  >
+                    <span className="w-7 h-7 rounded-xl bg-slate-800 flex items-center justify-center text-xs font-mono font-bold text-yellow-400 shrink-0">
+                      #{index + 1}
+                    </span>
+
+                    <div className="w-full md:w-52 shrink-0">
+                      <input
+                        type="text"
+                        required
+                        placeholder="Plate (e.g. DL 01 AB 1234)"
+                        value={row.vehicleNumber}
+                        onChange={(e) => handleUpdateBulkRow(row.id, 'vehicleNumber', e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-xs font-mono font-bold text-yellow-400 placeholder:text-slate-600 uppercase focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="w-full md:w-48 shrink-0">
+                      <input
+                        type="tel"
+                        required
+                        placeholder="Mobile Number"
+                        value={row.phoneNumber}
+                        onChange={(e) => handleUpdateBulkRow(row.id, 'phoneNumber', e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-xs font-bold text-white placeholder:text-slate-600 focus:outline-none"
+                      />
+                    </div>
+
+                    <div className="w-full md:flex-1">
+                      <input
+                        type="text"
+                        placeholder="Model (e.g. Honda City / Creta)"
+                        value={row.vehicleModel}
+                        onChange={(e) => handleUpdateBulkRow(row.id, 'vehicleModel', e.target.value)}
+                        className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none"
+                      />
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveBulkRow(row.id)}
+                      disabled={bulkRows.length <= 1}
+                      className="text-slate-500 hover:text-rose-400 p-2 rounded-lg hover:bg-slate-800 disabled:opacity-30 transition self-end md:self-auto"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/10">
+                <button
+                  type="button"
+                  onClick={handleAddBulkRow}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition border border-slate-700"
+                >
+                  <Plus className="w-4 h-4 text-yellow-400" />
+                  + Add Another Vehicle Row
+                </button>
+
+                <button
+                  type="submit"
+                  disabled={isCreatingBulk}
+                  className="w-full sm:w-auto py-3.5 px-8 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm glow-yellow transition flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {isCreatingBulk ? (
+                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4" />
+                      Generate & Print Batch Sheet
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </main>
+
+      {/* MODAL: SINGLE STICKER PRINT & HIGH-RES PNG DOWNLOAD */}
+      {selectedTagForPrint && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto no-print">
+          <div className="w-full max-w-md rounded-3xl bg-slate-950 border border-slate-800 p-6 flex flex-col items-center shadow-2xl relative">
+            <div className="w-full flex items-center justify-between pb-3 mb-2 border-b border-white/10">
+              <div className="text-xs font-black uppercase tracking-wider text-yellow-400 flex items-center gap-1.5">
+                <Printer className="w-4 h-4" />
+                Physical Sticker Print & 300 DPI Export
+              </div>
+              <button
+                onClick={() => setSelectedTagForPrint(null)}
+                className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="my-2">
+              <PrintableBadge
+                tag={selectedTagForPrint}
+                compact={false}
+                onThemeChange={(newTheme) => {
+                  const updated = { ...selectedTagForPrint, badgeTheme: newTheme };
+                  setSelectedTagForPrint(updated);
+                  handleTagUpdated(updated);
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: BATCH PRINT SHEET (A4 / Thermal) */}
+      {showBulkPrintModal && (
+        <BulkPrintModal
+          tags={tags.filter((t) =>
+            selectedTagIdsForBatch.length > 0 ? selectedTagIdsForBatch.includes(t.id) : true
+          )}
+          onClose={() => {
+            setShowBulkPrintModal(false);
+            setSelectedTagIdsForBatch([]);
+          }}
+        />
+      )}
+
+      {/* MODAL: SCAN AUDIT LOGS */}
+      {showLogsModal && <ActivityLogsModal onClose={() => setShowLogsModal(false)} />}
+
+      {/* MERCHANT FOOTER */}
+      <footer className="w-full border-t border-slate-800/80 py-8 px-4 sm:px-8 mt-16 no-print bg-[#050810]">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-slate-300">ParkPing Store Owner Fulfillment Console</span>
+            <span>•</span>
+            <span>Zero Manual Generation · Instant Print & Ship</span>
+          </div>
+
+          <div className="flex items-center gap-4 text-slate-400">
+            <Link href="/" className="hover:text-yellow-400">
+              Customer Storefront
+            </Link>
+            <button onClick={() => setShowLogsModal(true)} className="hover:text-yellow-400">
+              Live Audit Logs
+            </button>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+}

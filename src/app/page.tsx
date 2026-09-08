@@ -311,6 +311,9 @@ export default function HomePage() {
             <button onClick={() => scrollToSection(faqRef)} className="hover:text-yellow-400">
               FAQs
             </button>
+            <a href="/admin" className="text-yellow-400/90 hover:text-yellow-300 font-bold flex items-center gap-1">
+              <span>Store Owner Portal →</span>
+            </a>
           </div>
         </div>
       </footer>

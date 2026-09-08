@@ -4,8 +4,19 @@ export type TagStatus = 'active' | 'dnd' | 'inactive';
 
 export type BadgeTheme = 'dark_carbon' | 'amber_neon' | 'clean_white' | 'cyber_cyan';
 
+export type FulfillmentStatus = 'pending_print' | 'printed' | 'dispatched' | 'delivered';
+
+export interface ShippingAddress {
+  fullName: string;
+  street: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
+
 export interface VehicleTag {
-  id: string; // e.g. "PP-88219" or UUID
+  id: string; // e.g. "PP-88219"
+  orderId?: string; // e.g. "ORD-94821"
   vehicleNumber: string; // e.g. "DL 01 AB 1234"
   phoneNumber: string; // e.g. "+91 9876543210"
   alternatePhone?: string; // e.g. "+91 9876500000"
@@ -19,6 +30,10 @@ export interface VehicleTag {
   scanCount: number;
   lastScannedAt?: string;
   badgeTheme: BadgeTheme;
+  fulfillmentStatus?: FulfillmentStatus;
+  shippingAddress?: ShippingAddress;
+  paymentStatus?: 'paid' | 'cod' | 'pending';
+  price?: number;
 }
 
 export type AlertType = 
@@ -59,4 +74,10 @@ export interface CreateTagInput {
   vehicleType?: VehicleType;
   badgeTheme?: BadgeTheme;
   statusMessage?: string;
+  orderId?: string;
+  fulfillmentStatus?: FulfillmentStatus;
+  shippingAddress?: ShippingAddress;
+  paymentStatus?: 'paid' | 'cod' | 'pending';
+  price?: number;
 }
+
