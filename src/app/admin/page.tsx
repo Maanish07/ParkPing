@@ -1111,6 +1111,38 @@ export default function MerchantAdminPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Vehicle Model / Name
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. Hyundai Creta, Maruti Swift, Thar 4x4"
+                      value={singleVehicleModel}
+                      onChange={(e) => setSingleVehicleModel(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
+                      Vehicle Category / Type
+                    </label>
+                    <select
+                      value={singleVehicleType}
+                      onChange={(e) => setSingleVehicleType(e.target.value as any)}
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 focus:outline-none transition"
+                    >
+                      <option value="car">Car (Sedan / Hatchback)</option>
+                      <option value="suv">SUV / MUV</option>
+                      <option value="ev">Electric Vehicle (EV)</option>
+                      <option value="bike">Motorcycle / Two-Wheeler</option>
+                      <option value="truck">Commercial / Truck</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
                       Customer Name
                     </label>
                     <input

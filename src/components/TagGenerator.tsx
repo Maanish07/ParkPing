@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { formatVehicleNumber } from '@/lib/mask';
 import { VehicleDetails } from '@/lib/vahan';
-import { VehicleTag } from '@/lib/types';
+import { VehicleTag, VehicleType } from '@/lib/types';
 import PrintableBadge from './PrintableBadge';
 import { VehicleSlot } from './CheckoutOrderModal';
 import { 
@@ -17,7 +17,9 @@ import {
   ArrowRight,
   Plus,
   Layers,
-  Check
+  Check,
+  Edit2,
+  HelpCircle
 } from 'lucide-react';
 
 interface TagGeneratorProps {
@@ -63,6 +65,45 @@ export default function TagGenerator({ onStartCheckout }: TagGeneratorProps) {
       updated[index].details = undefined;
       setSlots([...updated]);
     }
+  };
+
+  // Handle model change directly
+  const handleModelChange = (index: number, val: string) => {
+    const updated = [...slots];
+    if (!updated[index].details) {
+      updated[index].details = {
+        vehicleNumber: updated[index].vehicleNumber,
+        maker: 'Automobile',
+        model: val,
+        vehicleType: 'car',
+        fuelType: 'Petrol',
+        rtoLocation: 'RTO Office',
+        state: 'India',
+        registrationDate: 'Active',
+        insuranceValidUntil: 'Active',
+        pucValidUntil: 'Active',
+        color: 'Standard',
+        ownerMaskedName: 'V****** O****',
+      };
+    } else {
+      updated[index].details = {
+        ...updated[index].details!,
+        model: val,
+      };
+    }
+    setSlots(updated);
+  };
+
+  // Handle vehicle type change
+  const handleTypeChange = (index: number, type: VehicleType) => {
+    const updated = [...slots];
+    if (updated[index].details) {
+      updated[index].details = {
+        ...updated[index].details!,
+        vehicleType: type,
+      };
+    }
+    setSlots(updated);
   };
 
   // Handle phone number change for specific slot
@@ -140,63 +181,108 @@ export default function TagGenerator({ onStartCheckout }: TagGeneratorProps) {
           Enter Vehicle Details to Order
         </h2>
         <p className="text-xs sm:text-sm text-slate-600 mt-2 font-medium">
-          Select your pack below. We automatically fetch vehicle specifications from the Vahan RTO database and generate your personalized smart QR tag.
+          Select your pack below. We automatically verify vehicle details from the Pan-India RTO database and generate your personalized smart QR tag.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 pt-6 sm:pt-8 relative z-10 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 pt-6 sm:pt-8 items-start relative z-10">
         {/* Left Form */}
-        <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-5">
-          {/* Plan Selector */}
-          <div>
-            <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2.5">
-              1. Choose Your Tag Pack:
+        <form onSubmit={handleSubmit} className="lg:col-span-7 space-y-6">
+          {/* Step 1: Pack Selection Pills */}
+          <div className="space-y-2">
+            <label className="block text-xs font-black uppercase tracking-wider text-slate-700">
+              1. Choose Smart Tag Package:
             </label>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
-              {[
-                { count: 1 as const, title: '1 Car Tag', price: '₹399', orig: '₹799', badge: 'Popular', desc: 'Single Vehicle' },
-                { count: 2 as const, title: '2 Cars Combo', price: '₹699', orig: '₹1599', badge: 'Save ₹100', desc: '2 Vehicles' },
-                { count: 3 as const, title: '3 Cars Family', price: '₹899', orig: '₹2399', badge: 'Best Value', desc: '3 Vehicles' },
-              ].map((p) => (
-                <button
-                  key={p.count}
-                  type="button"
-                  onClick={() => {
-                    setTagCount(p.count);
-                    if (activePreviewIndex >= p.count) {
-                      setActivePreviewIndex(0);
-                    }
-                  }}
-                  className={`p-3 sm:p-4 rounded-2xl border-2 text-left flex flex-col justify-between transition relative cursor-pointer ${
-                    tagCount === p.count
-                      ? 'bg-amber-50/90 border-amber-500 text-slate-950 shadow-md ring-2 ring-amber-400/20'
-                      : 'bg-slate-50/80 border-slate-200 text-slate-600 hover:border-slate-300 hover:bg-slate-100/60'
-                  }`}
-                >
-                  <div className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-amber-400 text-slate-950 self-end mb-1 shadow-sm">
-                    {p.badge}
+              {/* 1 Car */}
+              <button
+                type="button"
+                onClick={() => {
+                  setTagCount(1);
+                  setActivePreviewIndex(0);
+                }}
+                className={`p-3 sm:p-4 rounded-2xl border-2 text-left transition relative cursor-pointer ${
+                  tagCount === 1
+                    ? 'border-amber-400 bg-amber-50/70 shadow-sm'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <div className="text-[11px] sm:text-xs font-black text-slate-900">1 Car Tag</div>
+                <div className="text-sm sm:text-base font-black text-slate-950 mt-0.5">₹399</div>
+                <div className="text-[9px] sm:text-[10px] text-slate-500 font-medium">Individual Tag</div>
+                {tagCount === 1 && (
+                  <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[10px] font-bold">
+                    ✓
                   </div>
-                  <div className="text-xs sm:text-sm font-black text-slate-950">{p.title}</div>
-                  <div className="mt-1">
-                    <span className="text-sm sm:text-base font-black text-amber-600">{p.price}</span>{' '}
-                    <span className="text-[10px] line-through text-slate-400">{p.orig}</span>
+                )}
+              </button>
+
+              {/* 2 Cars Combo */}
+              <button
+                type="button"
+                onClick={() => {
+                  setTagCount(2);
+                  setActivePreviewIndex(0);
+                }}
+                className={`p-3 sm:p-4 rounded-2xl border-2 text-left transition relative cursor-pointer ${
+                  tagCount === 2
+                    ? 'border-amber-400 bg-amber-50/70 shadow-sm'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <span className="absolute -top-2.5 right-2 px-1.5 py-0.5 rounded-full bg-amber-400 text-slate-950 text-[8px] font-black uppercase shadow-sm">
+                  Save ₹99
+                </span>
+                <div className="text-[11px] sm:text-xs font-black text-slate-900">2 Cars Combo</div>
+                <div className="text-sm sm:text-base font-black text-slate-950 mt-0.5">₹699</div>
+                <div className="text-[9px] sm:text-[10px] text-emerald-700 font-bold">₹349 / tag</div>
+                {tagCount === 2 && (
+                  <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[10px] font-bold">
+                    ✓
                   </div>
-                </button>
-              ))}
+                )}
+              </button>
+
+              {/* 3 Cars Family */}
+              <button
+                type="button"
+                onClick={() => {
+                  setTagCount(3);
+                  setActivePreviewIndex(0);
+                }}
+                className={`p-3 sm:p-4 rounded-2xl border-2 text-left transition relative cursor-pointer ${
+                  tagCount === 3
+                    ? 'border-amber-400 bg-amber-50/70 shadow-sm'
+                    : 'border-slate-200 bg-white hover:border-slate-300'
+                }`}
+              >
+                <span className="absolute -top-2.5 right-2 px-1.5 py-0.5 rounded-full bg-emerald-500 text-white text-[8px] font-black uppercase shadow-sm">
+                  Best Value
+                </span>
+                <div className="text-[11px] sm:text-xs font-black text-slate-900">3 Cars Family</div>
+                <div className="text-sm sm:text-base font-black text-slate-950 mt-0.5">₹899</div>
+                <div className="text-[9px] sm:text-[10px] text-emerald-700 font-bold">₹299 / tag</div>
+                {tagCount === 3 && (
+                  <div className="absolute top-2 right-2 w-4 h-4 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center text-[10px] font-bold">
+                    ✓
+                  </div>
+                )}
+              </button>
             </div>
           </div>
 
-          {/* Same Phone Checkbox for Multi-car pack */}
+          {/* Sync phone number checkbox for multi-car pack */}
           {tagCount > 1 && (
-            <div className="p-3.5 rounded-2xl bg-amber-50/70 border border-amber-200 flex items-center justify-between gap-3 text-xs">
-              <label className="flex items-center gap-2 cursor-pointer font-bold text-slate-800 select-none">
-                <input
-                  type="checkbox"
-                  checked={samePhoneForAll}
-                  onChange={(e) => handleToggleSamePhone(e.target.checked)}
-                  className="w-4 h-4 rounded text-amber-500 focus:ring-amber-400 border-slate-300 cursor-pointer"
-                />
-                <span>Use same owner phone number for all {tagCount} vehicles</span>
+            <div className="flex items-center gap-2 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+              <input
+                type="checkbox"
+                id="samePhoneToggle"
+                checked={samePhoneForAll}
+                onChange={(e) => handleToggleSamePhone(e.target.checked)}
+                className="w-4 h-4 accent-amber-500 rounded cursor-pointer"
+              />
+              <label htmlFor="samePhoneToggle" className="cursor-pointer font-medium select-none">
+                Use same mobile number for all {tagCount} vehicles
               </label>
             </div>
           )}
@@ -228,14 +314,14 @@ export default function TagGenerator({ onStartCheckout }: TagGeneratorProps) {
                         {idx + 1}
                       </span>
                       <span className="text-xs sm:text-sm font-black text-slate-900">
-                        Car #{idx + 1} Registration
+                        Vehicle #{idx + 1} Registration
                       </span>
                     </div>
 
                     {slot.loadingDetails && (
                       <span className="text-[10px] text-blue-600 font-bold flex items-center gap-1">
                         <div className="w-2.5 h-2.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                        Fetching Vahan RTO...
+                        Fetching RTO Details...
                       </span>
                     )}
                   </div>
@@ -260,22 +346,41 @@ export default function TagGenerator({ onStartCheckout }: TagGeneratorProps) {
                     </div>
                   </div>
 
-                  {/* Auto-Fetched Vehicle Card */}
+                  {/* Auto-Fetched Vehicle Card & Editable Model */}
                   {slot.details && (
-                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center justify-between gap-3 text-xs animate-fadeIn shadow-sm">
-                      <div>
+                    <div className="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-300 space-y-2 text-xs animate-fadeIn shadow-sm">
+                      <div className="flex items-center justify-between gap-2">
                         <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span>{slot.details.model}</span>
-                          <span className="text-[10px] text-slate-500 font-normal">({slot.details.color})</span>
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                          <span className="text-emerald-950 font-black">{slot.details.rtoLocation}</span>
                         </div>
-                        <div className="text-[10px] text-slate-600 mt-0.5">
-                          {slot.details.rtoLocation} • Fuel: <strong className="text-amber-700">{slot.details.fuelType}</strong>
-                        </div>
+                        <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+                          {slot.details.source === 'live_vahan_api' ? '✓ Live Vahan Verified' : '✓ RTO Verified'}
+                        </span>
                       </div>
-                      <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
-                        ✓ RTO Verified
-                      </span>
+
+                      {/* Editable Car Model & Variant */}
+                      <div className="pt-1">
+                        <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1 flex items-center justify-between">
+                          <span>Vehicle Model / Name (Confirm or Edit):</span>
+                          <span className="text-[10px] font-normal text-slate-500 flex items-center gap-1">
+                            <Edit2 className="w-3 h-3 text-amber-600" /> Editable
+                          </span>
+                        </label>
+                        <input
+                          type="text"
+                          value={slot.details.model}
+                          onChange={(e) => handleModelChange(idx, e.target.value)}
+                          placeholder="e.g. Hyundai Creta, Maruti Swift, Thar 4x4, Royal Enfield"
+                          className="w-full bg-white border border-emerald-300 focus:border-amber-500 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none shadow-sm"
+                        />
+                      </div>
+
+                      <div className="flex items-center gap-3 text-[10px] text-slate-600 pt-0.5">
+                        <span>State: <strong className="text-slate-900">{slot.details.state}</strong></span>
+                        <span>•</span>
+                        <span>Fuel: <strong className="text-amber-800">{slot.details.fuelType}</strong></span>
+                      </div>
                     </div>
                   )}
 

@@ -299,19 +299,44 @@ export default function CheckoutOrderModal({
                     </div>
 
                     {slot.details && (
-                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center justify-between gap-3 text-xs animate-fadeIn">
-                        <div>
+                      <div className="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-300 space-y-2 text-xs animate-fadeIn">
+                        <div className="flex items-center justify-between gap-2">
                           <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                            {slot.details.model} ({slot.details.color})
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span className="text-emerald-950 font-black">{slot.details.rtoLocation}</span>
                           </div>
-                          <div className="text-[10px] text-slate-600 mt-0.5">
-                            {slot.details.rtoLocation} • Fuel: <strong className="text-amber-700">{slot.details.fuelType}</strong>
-                          </div>
+                          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+                            {slot.details.source === 'live_vahan_api' ? '✓ Live Vahan Verified' : '✓ RTO Verified'}
+                          </span>
                         </div>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
-                          RTO Verified
-                        </span>
+
+                        <div>
+                          <label className="block text-[10px] font-bold text-slate-700 mb-1">
+                            Vehicle Model / Name (Confirm or Customise):
+                          </label>
+                          <input
+                            type="text"
+                            value={slot.details.model}
+                            onChange={(e) => {
+                              const updated = [...slots];
+                              if (updated[idx].details) {
+                                updated[idx].details = {
+                                  ...updated[idx].details!,
+                                  model: e.target.value,
+                                };
+                                setSlots(updated);
+                              }
+                            }}
+                            placeholder="e.g. Hyundai Creta, Swift, Thar 4x4, Royal Enfield"
+                            className="w-full bg-white border border-emerald-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none"
+                          />
+                        </div>
+
+                        <div className="flex items-center gap-3 text-[10px] text-slate-600">
+                          <span>State: <strong className="text-slate-900">{slot.details.state}</strong></span>
+                          <span>•</span>
+                          <span>Fuel: <strong className="text-amber-800">{slot.details.fuelType}</strong></span>
+                        </div>
                       </div>
                     )}
                   </div>
