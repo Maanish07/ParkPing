@@ -164,15 +164,15 @@ export default function PrintableBadge({
     <div className="flex flex-col items-center">
       {/* Theme Pills */}
       {!compact && onThemeChange && (
-        <div className="flex items-center gap-1.5 mb-4 p-1 rounded-full bg-slate-900 border border-slate-800 no-print shadow-inner">
+        <div className="flex items-center gap-1.5 mb-4 p-1 rounded-full bg-slate-100 border border-slate-200 no-print shadow-sm">
           {(['amber_neon', 'dark_carbon', 'cyber_cyan', 'clean_white'] as BadgeTheme[]).map((t) => (
             <button
               key={t}
               onClick={() => handleThemeSelect(t)}
               className={`px-3 py-1 text-[11px] font-bold rounded-full transition-all capitalize ${
                 theme === t
-                  ? 'bg-yellow-400 text-black shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-amber-400 text-slate-950 shadow-sm'
+                  : 'text-slate-600 hover:text-slate-950'
               }`}
             >
               {t.replace('_', ' ')}
@@ -255,18 +255,18 @@ export default function PrintableBadge({
 
       {/* Action Buttons */}
       {!compact && (
-        <div className="flex items-center gap-3 mt-4 no-print">
+        <div className="flex items-center gap-3 mt-4 no-print flex-wrap justify-center">
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl bg-slate-900 hover:bg-slate-800 text-white border border-slate-700 transition shadow"
+            className="flex items-center gap-2 px-4 py-2.5 text-xs font-bold rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 transition shadow-sm active:scale-95"
           >
-            <Download className="w-4 h-4 text-yellow-400" />
+            <Download className="w-4 h-4 text-amber-500" />
             {downloading ? 'Downloading PNG...' : 'Download Sticker PNG'}
           </button>
           <button
             onClick={handlePrint}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-black rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black transition glow-yellow"
+            className="flex items-center gap-2 px-4 py-2.5 text-xs font-black rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 transition glow-yellow shadow-md active:scale-95"
           >
             <Printer className="w-4 h-4" />
             Print Badge

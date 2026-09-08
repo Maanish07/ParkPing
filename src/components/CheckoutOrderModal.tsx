@@ -1,29 +1,20 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { VehicleTag, BadgeTheme } from '@/lib/types';
 import { formatVehicleNumber } from '@/lib/mask';
 import { VehicleDetails } from '@/lib/vahan';
 import PrintableBadge from './PrintableBadge';
 import { 
-  ShieldCheck, 
   CreditCard, 
   Car, 
-  Phone, 
-  Sparkles, 
   CheckCircle2, 
   Truck, 
   Lock, 
   ArrowRight, 
   X, 
-  Search, 
-  Droplets, 
-  Zap,
-  Download,
   ExternalLink,
-  ChevronRight,
-  Shield,
-  Layers
+  ChevronRight
 } from 'lucide-react';
 
 interface CheckoutOrderModalProps {
@@ -84,13 +75,7 @@ export default function CheckoutOrderModal({
     return 899;
   };
 
-  const getOriginalPrice = () => {
-    if (tagCount === 1) return 799;
-    if (tagCount === 2) return 1599;
-    return 2399;
-  };
-
-  // Auto-fetch vehicle details when vehicle number reaches standard length
+  // Auto-fetch vehicle details
   const handleVehicleNumberChange = async (index: number, val: string) => {
     const formatted = formatVehicleNumber(val);
     const updatedSlots = [...slots];
@@ -117,7 +102,6 @@ export default function CheckoutOrderModal({
     }
   };
 
-  // Auto-fill PIN code city/state
   const handlePincodeChange = (pin: string) => {
     setAddress({ ...address, pincode: pin });
     if (pin.length === 6) {
@@ -149,6 +133,7 @@ export default function CheckoutOrderModal({
     setProcessing(true);
     try {
       const orderId = `ORD-${Math.floor(1000 + Math.random() * 9000)}`;
+      const activeSlots = slots.slice(0, tagCount);
       const items = activeSlots.map((slot) => ({
         orderId,
         vehicleNumber: slot.vehicleNumber,
@@ -186,12 +171,12 @@ export default function CheckoutOrderModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-      <div className="w-full max-w-3xl rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-8 flex flex-col shadow-2xl relative my-8">
+    <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
+      <div className="w-full max-w-3xl rounded-3xl bg-white border border-slate-200 p-6 sm:p-8 flex flex-col shadow-2xl relative my-8 text-slate-900">
         {/* Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 p-2 rounded-full bg-slate-900 text-slate-400 hover:text-white transition z-20"
+          className="absolute top-5 right-5 p-2 rounded-full bg-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-200 transition z-20"
         >
           <X className="w-5 h-5" />
         </button>
@@ -200,25 +185,25 @@ export default function CheckoutOrderModal({
         {step === 1 && (
           <form onSubmit={handleStep1Submit} className="space-y-6">
             {/* Header */}
-            <div className="border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-2 text-yellow-400 text-xs font-black uppercase tracking-wider mb-1">
+            <div className="border-b border-slate-200 pb-4">
+              <div className="flex items-center gap-2 text-amber-600 text-xs font-black uppercase tracking-wider mb-1">
                 <Truck className="w-4 h-4" />
                 Step 1 of 2 · Vehicle & Delivery
               </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-white">
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-950">
                 Order Your Smart Vehicle Tag
               </h3>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
                 Free shipping across India · Automatic vehicle lookup from Vahan database · Ships in 24 hrs
               </p>
             </div>
 
             {/* Tag Pack Selector */}
             <div>
-              <label className="block text-xs font-black uppercase tracking-wider text-slate-300 mb-2">
+              <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-2">
                 Select Number of Vehicles / Tags:
               </label>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-3 gap-2.5 sm:gap-3">
                 {[
                   { count: 1, title: '1 Car Tag', price: '₹399', orig: '₹799', badge: 'Popular' },
                   { count: 2, title: '2 Cars Combo', price: '₹699', orig: '₹1599', badge: 'Save ₹100' },
@@ -228,19 +213,19 @@ export default function CheckoutOrderModal({
                     key={plan.count}
                     type="button"
                     onClick={() => setTagCount(plan.count as any)}
-                    className={`p-3.5 rounded-2xl border-2 text-left flex flex-col justify-between transition relative ${
+                    className={`p-3 sm:p-3.5 rounded-2xl border-2 text-left flex flex-col justify-between transition relative ${
                       tagCount === plan.count
-                        ? 'bg-yellow-400/10 border-yellow-400 text-white glow-yellow'
-                        : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                        ? 'bg-amber-50/80 border-amber-500 text-slate-950 shadow-sm'
+                        : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                     }`}
                   >
-                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[9px] font-black bg-yellow-400 text-black">
+                    <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded text-[9px] font-black bg-amber-400 text-slate-950">
                       {plan.badge}
                     </div>
-                    <div className="text-xs font-black text-white">{plan.title}</div>
+                    <div className="text-xs font-black text-slate-900">{plan.title}</div>
                     <div className="mt-1">
-                      <span className="text-sm font-black text-yellow-400">{plan.price}</span>{' '}
-                      <span className="text-[10px] line-through text-slate-500">{plan.orig}</span>
+                      <span className="text-sm font-black text-amber-600">{plan.price}</span>{' '}
+                      <span className="text-[10px] line-through text-slate-400">{plan.orig}</span>
                     </div>
                   </button>
                 ))}
@@ -252,24 +237,23 @@ export default function CheckoutOrderModal({
               {Array.from({ length: tagCount }).map((_, idx) => {
                 const slot = slots[idx];
                 return (
-                  <div key={idx} className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+                  <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-black text-yellow-400 flex items-center gap-1.5">
-                        <Car className="w-3.5 h-3.5" />
+                      <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
+                        <Car className="w-3.5 h-3.5 text-amber-600" />
                         Vehicle #{idx + 1}
                       </span>
                       {slot.loadingDetails && (
-                        <span className="text-[10px] text-cyan-400 font-bold flex items-center gap-1">
-                          <div className="w-3 h-3 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-                          Fetching Vahan RTO details...
+                        <span className="text-[10px] text-blue-600 font-bold flex items-center gap-1">
+                          <div className="w-3 h-3 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                          Fetching Vahan details...
                         </span>
                       )}
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                      {/* Vehicle Number */}
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
                           Vehicle Registration Number *
                         </label>
                         <input
@@ -278,13 +262,12 @@ export default function CheckoutOrderModal({
                           placeholder="e.g. DL 01 AB 1234"
                           value={slot.vehicleNumber}
                           onChange={(e) => handleVehicleNumberChange(idx, e.target.value)}
-                          className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-sm font-mono font-bold text-yellow-400 placeholder:text-slate-600 uppercase focus:outline-none"
+                          className="w-full bg-white border border-slate-300 focus:border-amber-500 rounded-xl px-3 py-2.5 text-base sm:text-sm font-mono font-bold text-slate-900 placeholder:text-slate-400 uppercase focus:outline-none"
                         />
                       </div>
 
-                      {/* Mobile Number */}
                       <div>
-                        <label className="block text-[11px] font-bold text-slate-300 mb-1">
+                        <label className="block text-[11px] font-bold text-slate-700 mb-1">
                           Owner Mobile Number (For Masked Calls) *
                         </label>
                         <input
@@ -297,24 +280,23 @@ export default function CheckoutOrderModal({
                             updated[idx].mobileNumber = e.target.value;
                             setSlots(updated);
                           }}
-                          className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-sm font-bold text-white placeholder:text-slate-600 focus:outline-none"
+                          className="w-full bg-white border border-slate-300 focus:border-amber-500 rounded-xl px-3 py-2.5 text-base sm:text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none"
                         />
                       </div>
                     </div>
 
-                    {/* Auto-Fetched Vehicle Card */}
                     {slot.details && (
-                      <div className="p-3 rounded-xl bg-slate-950 border border-emerald-500/30 flex items-center justify-between gap-3 text-xs animate-fadeIn">
+                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-300 flex items-center justify-between gap-3 text-xs animate-fadeIn">
                         <div>
-                          <div className="font-bold text-white flex items-center gap-1.5">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+                          <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                             {slot.details.model} ({slot.details.color})
                           </div>
-                          <div className="text-[10px] text-slate-400 mt-0.5">
-                            {slot.details.rtoLocation} • Fuel: <strong className="text-yellow-400">{slot.details.fuelType}</strong> • Insurance: Valid
+                          <div className="text-[10px] text-slate-600 mt-0.5">
+                            {slot.details.rtoLocation} • Fuel: <strong className="text-amber-700">{slot.details.fuelType}</strong>
                           </div>
                         </div>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-500/40 shrink-0">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
                           RTO Verified
                         </span>
                       </div>
@@ -325,26 +307,26 @@ export default function CheckoutOrderModal({
             </div>
 
             {/* Delivery Address */}
-            <div className="p-4 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
-              <div className="text-xs font-black uppercase tracking-wider text-slate-300">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
+              <div className="text-xs font-black uppercase tracking-wider text-slate-800">
                 Shipping & Delivery Address
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Full Name *</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Full Name *</label>
                   <input
                     type="text"
                     required
-                    placeholder="Your Name"
+                    placeholder="Your Full Name"
                     value={address.fullName}
                     onChange={(e) => setAddress({ ...address, fullName: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-base sm:text-xs text-slate-900 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">PIN Code (6 Digits) *</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">PIN Code (6 Digits) *</label>
                   <input
                     type="tel"
                     required
@@ -352,56 +334,56 @@ export default function CheckoutOrderModal({
                     placeholder="110001"
                     value={address.pincode}
                     onChange={(e) => handlePincodeChange(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-base sm:text-xs text-slate-900 focus:outline-none"
                   />
                 </div>
 
                 <div className="sm:col-span-2">
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">Street Address, House No. *</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Street Address, House / Flat No. *</label>
                   <input
                     type="text"
                     required
-                    placeholder="House / Flat No., Landmark, Area"
+                    placeholder="House No., Building Name, Area, Landmark"
                     value={address.street}
                     onChange={(e) => setAddress({ ...address, street: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-base sm:text-xs text-slate-900 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">City</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">City</label>
                   <input
                     type="text"
                     value={address.city}
                     onChange={(e) => setAddress({ ...address, city: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-base sm:text-xs text-slate-900 focus:outline-none"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold text-slate-400 mb-1">State</label>
+                  <label className="block text-[11px] font-bold text-slate-600 mb-1">State</label>
                   <input
                     type="text"
                     value={address.state}
                     onChange={(e) => setAddress({ ...address, state: e.target.value })}
-                    className="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none"
+                    className="w-full bg-white border border-slate-300 rounded-xl px-3 py-2.5 text-base sm:text-xs text-slate-900 focus:outline-none"
                   />
                 </div>
               </div>
             </div>
 
             {/* Step 1 Submit Button */}
-            <div className="flex items-center justify-between pt-2">
-              <div>
-                <div className="text-xs text-slate-400">Total Amount:</div>
-                <div className="text-xl font-black text-yellow-400">₹{getPrice()}</div>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+              <div className="flex sm:flex-col justify-between items-center sm:items-start">
+                <div className="text-xs text-slate-500">Total Amount:</div>
+                <div className="text-xl font-black text-slate-950">₹{getPrice()}</div>
               </div>
 
               <button
                 type="submit"
-                className="py-3.5 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm glow-yellow transition flex items-center gap-2"
+                className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm glow-yellow transition flex items-center justify-center gap-2 shadow-md cursor-pointer active:scale-95"
               >
-                Continue to Payment
+                <span>Continue to Payment</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
             </div>
@@ -411,32 +393,32 @@ export default function CheckoutOrderModal({
         {/* STEP 2: CHOOSE PAYMENT METHOD */}
         {step === 2 && (
           <div className="space-y-6">
-            <div className="border-b border-slate-800 pb-4">
-              <div className="flex items-center gap-2 text-yellow-400 text-xs font-black uppercase tracking-wider mb-1">
+            <div className="border-b border-slate-200 pb-4">
+              <div className="flex items-center gap-2 text-amber-600 text-xs font-black uppercase tracking-wider mb-1">
                 <CreditCard className="w-4 h-4" />
                 Step 2 of 2 · Payment Method
               </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-white">
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-950">
                 Choose How to Pay
               </h3>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
                 100% Secure 256-Bit Encrypted Checkout · Instant digital QR download + physical tag shipping
               </p>
             </div>
 
             {/* Order Summary Box */}
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-between">
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between">
               <div>
-                <div className="text-xs font-bold text-white">
+                <div className="text-xs font-bold text-slate-900">
                   ParkPing Smart Tags ({tagCount} Vehicle{tagCount > 1 ? 's' : ''})
                 </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
+                <div className="text-[11px] text-slate-500 mt-0.5">
                   Delivering to: {address.fullName}, {address.city} ({address.pincode})
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-lg font-black text-yellow-400">₹{getPrice()}</div>
-                <div className="text-[10px] text-emerald-400 font-bold">Free Shipping</div>
+                <div className="text-lg font-black text-slate-950">₹{getPrice()}</div>
+                <div className="text-[10px] text-emerald-600 font-bold">Free Shipping</div>
               </div>
             </div>
 
@@ -447,20 +429,20 @@ export default function CheckoutOrderModal({
                 onClick={() => setPaymentMethod('upi')}
                 className={`w-full p-4 rounded-2xl border-2 text-left flex items-center justify-between transition ${
                   paymentMethod === 'upi'
-                    ? 'bg-yellow-400/10 border-yellow-400 text-white glow-yellow'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'bg-amber-50/80 border-amber-500 text-slate-950 shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-yellow-400 text-black flex items-center justify-center font-black text-xs">
+                  <div className="w-10 h-10 rounded-xl bg-amber-400 text-slate-950 font-black text-xs flex items-center justify-center shadow-sm">
                     UPI
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-white">Instant UPI / GPay / PhonePe / Paytm</div>
-                    <div className="text-xs text-slate-400">Instant digital eTag delivery + Free physical tag</div>
+                    <div className="text-xs font-black text-slate-900">Instant UPI / QR / Google Pay / Paytm</div>
+                    <div className="text-[11px] text-slate-500">Instant digital eTag delivery + Free physical tag</div>
                   </div>
                 </div>
-                <div className="text-sm font-black text-yellow-400">₹{getPrice()}</div>
+                <div className="text-sm font-black text-slate-950">₹{getPrice()}</div>
               </button>
 
               <button
@@ -468,20 +450,20 @@ export default function CheckoutOrderModal({
                 onClick={() => setPaymentMethod('card')}
                 className={`w-full p-4 rounded-2xl border-2 text-left flex items-center justify-between transition ${
                   paymentMethod === 'card'
-                    ? 'bg-yellow-400/10 border-yellow-400 text-white glow-yellow'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'bg-amber-50/80 border-amber-500 text-slate-950 shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-800 text-cyan-400 flex items-center justify-center font-bold">
-                    <CreditCard className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-700 font-black text-xs flex items-center justify-center">
+                    CARD
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-white">Credit / Debit Card & Netbanking</div>
-                    <div className="text-xs text-slate-400">Visa, Mastercard, RuPay, Corporate Cards</div>
+                    <div className="text-xs font-black text-slate-900">Credit / Debit Card / NetBanking</div>
+                    <div className="text-[11px] text-slate-500">Visa, Mastercard, RuPay, Amex</div>
                   </div>
                 </div>
-                <div className="text-sm font-black text-yellow-400">₹{getPrice()}</div>
+                <div className="text-sm font-black text-slate-950">₹{getPrice()}</div>
               </button>
 
               <button
@@ -489,29 +471,29 @@ export default function CheckoutOrderModal({
                 onClick={() => setPaymentMethod('cod')}
                 className={`w-full p-4 rounded-2xl border-2 text-left flex items-center justify-between transition ${
                   paymentMethod === 'cod'
-                    ? 'bg-yellow-400/10 border-yellow-400 text-white glow-yellow'
-                    : 'bg-slate-900/60 border-slate-800 text-slate-400 hover:border-slate-700'
+                    ? 'bg-amber-50/80 border-amber-500 text-slate-950 shadow-sm'
+                    : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'
                 }`}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-slate-800 text-emerald-400 flex items-center justify-center font-bold">
-                    <Truck className="w-5 h-5" />
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 font-black text-xs flex items-center justify-center">
+                    COD
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-white">Cash on Delivery (COD)</div>
-                    <div className="text-xs text-slate-400">Pay cash when courier delivers to your address</div>
+                    <div className="text-xs font-black text-slate-900">Cash on Delivery (Pay upon arrival)</div>
+                    <div className="text-[11px] text-slate-500">Pay cash/UPI to courier upon tag delivery</div>
                   </div>
                 </div>
-                <div className="text-sm font-black text-yellow-400">₹{getPrice()}</div>
+                <div className="text-sm font-black text-slate-950">₹{getPrice()}</div>
               </button>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center justify-between pt-4 border-t border-slate-800">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-200">
               <button
                 type="button"
                 onClick={() => setStep(1)}
-                className="text-xs text-slate-400 hover:text-white font-bold"
+                className="text-xs text-slate-600 hover:text-slate-900 font-bold py-2 text-center"
               >
                 ← Back to Vehicle details
               </button>
@@ -520,14 +502,14 @@ export default function CheckoutOrderModal({
                 type="button"
                 onClick={handleCompleteOrder}
                 disabled={processing}
-                className="py-3.5 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm glow-yellow transition flex items-center gap-2"
+                className="w-full sm:w-auto py-3.5 px-8 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm glow-yellow transition flex items-center justify-center gap-2 shadow-md cursor-pointer active:scale-95"
               >
                 {processing ? (
-                  <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                  <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
                 ) : (
                   <>
                     <Lock className="w-4 h-4" />
-                    Pay ₹{getPrice()} & Activate Tag
+                    <span>Pay ₹{getPrice()} & Activate Tag</span>
                   </>
                 )}
               </button>
@@ -535,21 +517,21 @@ export default function CheckoutOrderModal({
           </div>
         )}
 
-        {/* STEP 3: ORDER SUCCESS & INSTANT QR TAG DELIVERY */}
+        {/* STEP 3: ORDER SUCCESS */}
         {step === 3 && (
           <div className="space-y-6 text-center py-2 animate-fadeIn">
-            <div className="w-16 h-16 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mx-auto border-2 border-emerald-500/50 shadow-glow-emerald">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto border-2 border-emerald-300 shadow-sm">
               <CheckCircle2 className="w-8 h-8" />
             </div>
 
             <div>
-              <div className="inline-block px-3 py-1 rounded-full bg-emerald-950 text-emerald-400 text-xs font-black uppercase tracking-wider mb-2 border border-emerald-500/40">
+              <div className="inline-block px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-black uppercase tracking-wider mb-2 border border-emerald-200">
                 ✓ Order Confirmed · Tag Activated
               </div>
-              <h3 className="text-2xl sm:text-3xl font-black text-white">
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-950">
                 Your Smart Vehicle Tag is Live!
               </h3>
-              <p className="text-xs text-slate-400 max-w-md mx-auto mt-1">
+              <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto mt-1 font-medium">
                 We have linked your vehicle with masked calling. Your digital eTag is ready to download and the physical 3M waterproof tag will be delivered in 2–3 days.
               </p>
             </div>
@@ -564,7 +546,7 @@ export default function CheckoutOrderModal({
                       href={`/p/${tag.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-cyan-400 text-xs font-bold border border-slate-700 flex items-center gap-1"
+                      className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-blue-700 text-xs font-bold border border-slate-300 flex items-center gap-1"
                     >
                       <ExternalLink className="w-3.5 h-3.5" /> Test Scan
                     </a>
@@ -574,11 +556,11 @@ export default function CheckoutOrderModal({
             </div>
 
             {/* Delivery Confirmation Note */}
-            <div className="p-4 rounded-2xl bg-slate-900 border border-slate-800 text-xs text-slate-300 max-w-lg mx-auto flex items-center gap-3 text-left">
-              <Truck className="w-6 h-6 text-yellow-400 shrink-0" />
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700 max-w-lg mx-auto flex items-center gap-3 text-left">
+              <Truck className="w-6 h-6 text-amber-600 shrink-0" />
               <div>
-                <div className="font-bold text-white">Dispatched to WhatsApp & Shipping Address</div>
-                <div className="text-[11px] text-slate-400">
+                <div className="font-bold text-slate-900">Dispatched to WhatsApp & Shipping Address</div>
+                <div className="text-[11px] text-slate-500">
                   Digital eTag PDF sent to your WhatsApp. Physical waterproof sticker arriving at {address.street}, {address.city}.
                 </div>
               </div>
@@ -587,7 +569,7 @@ export default function CheckoutOrderModal({
             <button
               type="button"
               onClick={onClose}
-              className="py-3 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs glow-yellow transition"
+              className="py-3 px-8 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs glow-yellow transition shadow-md"
             >
               Done · Back to Home
             </button>

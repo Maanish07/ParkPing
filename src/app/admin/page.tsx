@@ -26,18 +26,13 @@ import {
   ArrowLeft, 
   Trash2, 
   LayoutGrid, 
-  Table as TableIcon,
   ExternalLink,
   X,
   ShoppingBag,
   Zap,
   Truck,
   PackageCheck,
-  Check,
-  MapPin,
-  CreditCard,
-  Send,
-  AlertCircle
+  MapPin
 } from 'lucide-react';
 
 export default function MerchantAdminPage() {
@@ -109,7 +104,7 @@ export default function MerchantAdminPage() {
     fetchTags();
   }, []);
 
-  // Update Fulfillment Status (e.g. pending_print -> dispatched)
+  // Update Fulfillment Status
   const handleUpdateFulfillment = async (tagId: string, newFulfillmentStatus: FulfillmentStatus) => {
     setStatusUpdatingId(tagId);
     try {
@@ -295,7 +290,6 @@ export default function MerchantAdminPage() {
     setTags(tags.filter((t) => t.id !== id));
   };
 
-  // Filtered Orders / Tags
   const pendingOrders = tags.filter((t) => (t.fulfillmentStatus || 'pending_print') === 'pending_print');
   const dispatchedOrders = tags.filter((t) => t.fulfillmentStatus === 'dispatched' || t.fulfillmentStatus === 'delivered');
 
@@ -317,7 +311,6 @@ export default function MerchantAdminPage() {
     return matchesQuery && matchesFulfillment && matchesStatus;
   });
 
-  // Batch Print All Pending
   const handleBatchPrintAllPending = () => {
     const idsToPrint = pendingOrders.map((t) => t.id);
     if (idsToPrint.length === 0) {
@@ -329,25 +322,25 @@ export default function MerchantAdminPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#06090f] text-slate-100 flex flex-col justify-between selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-[#fafbfc] text-slate-900 flex flex-col justify-between selection:bg-amber-400 selection:text-black">
       {/* Top Merchant Navigation Header */}
-      <header className="sticky top-0 z-40 w-full glass-panel border-b border-white/10 px-4 sm:px-8 py-3.5 no-print">
+      <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-slate-200/90 px-4 sm:px-8 py-3.5 no-print shadow-sm">
         <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
           {/* Logo & Portal Identity */}
           <div className="flex items-center gap-3">
             <Link href="/" className="flex items-center gap-3 group">
-              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-yellow-300 via-yellow-400 to-amber-500 text-black font-black text-lg flex items-center justify-center shadow-md group-hover:scale-105 transition">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 via-amber-500 to-yellow-500 text-black font-black text-lg flex items-center justify-center shadow-md group-hover:scale-105 transition">
                 PP
               </div>
               <div>
-                <div className="font-black text-lg sm:text-xl tracking-tight text-white flex items-center gap-2">
+                <div className="font-black text-lg sm:text-xl tracking-tight text-slate-950 flex items-center gap-2">
                   <span>PARKPING</span>
-                  <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-yellow-400 text-black shadow-sm">
+                  <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-amber-400 text-slate-950 shadow-sm">
                     STORE OWNER PORTAL
                   </span>
                 </div>
-                <div className="text-[11px] text-slate-400 flex items-center gap-1 font-medium">
-                  <Store className="w-3 h-3 text-yellow-400" />
+                <div className="text-[11px] text-slate-500 flex items-center gap-1 font-medium hidden sm:flex">
+                  <Store className="w-3 h-3 text-amber-600" />
                   <span>Automatic QR Order Fulfillment & Physical Sticker Dispatch</span>
                 </div>
               </div>
@@ -358,15 +351,15 @@ export default function MerchantAdminPage() {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setShowLogsModal(true)}
-              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-800 text-xs font-bold transition shadow"
+              className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 text-xs font-bold transition shadow-sm"
             >
-              <Clock className="w-3.5 h-3.5 text-yellow-400" />
+              <Clock className="w-3.5 h-3.5 text-amber-600" />
               <span>Live Scan Logs</span>
             </button>
 
             <Link
               href="/"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-yellow-400 border border-yellow-400/30 text-xs font-black transition active:scale-95 shadow"
+              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-black transition active:scale-95 shadow-sm"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Customer Storefront</span>
@@ -376,91 +369,91 @@ export default function MerchantAdminPage() {
       </header>
 
       {/* Main Merchant Portal Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 flex-1 w-full space-y-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 flex-1 w-full space-y-6 sm:space-y-8">
         {/* KPI OVERVIEW CARDS */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Pending to Print KPI */}
-          <div className="glass-card rounded-3xl p-5 border border-yellow-400/30 bg-gradient-to-br from-yellow-400/5 to-transparent flex items-center justify-between">
+          <div className="bg-white rounded-3xl p-5 border-2 border-amber-300 bg-gradient-to-br from-amber-50/50 to-white flex items-center justify-between shadow-sm">
             <div>
-              <div className="text-xs uppercase font-bold text-yellow-400 tracking-wider flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
+              <div className="text-xs uppercase font-bold text-amber-700 tracking-wider flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping" />
                 Pending to Print
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+              <div className="text-2xl sm:text-3xl font-black text-slate-950 mt-1">
                 {pendingOrders.length}{' '}
-                <span className="text-xs text-yellow-400 font-semibold font-mono">Orders</span>
+                <span className="text-xs text-amber-600 font-semibold font-mono">Orders</span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-1">QR Auto-Generated · Ready to Print</div>
+              <div className="text-[11px] text-slate-500 mt-1">QR Auto-Generated · Ready to Print</div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-yellow-400/15 border border-yellow-400/40 text-yellow-400 flex items-center justify-center font-bold shadow-glow">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 text-amber-800 flex items-center justify-center font-bold shadow-sm">
               <Printer className="w-6 h-6" />
             </div>
           </div>
 
           {/* Dispatched KPI */}
-          <div className="glass-card rounded-3xl p-5 border border-white/10 flex items-center justify-between">
+          <div className="bg-white rounded-3xl p-5 border border-slate-200 flex items-center justify-between shadow-sm">
             <div>
-              <div className="text-xs uppercase font-bold text-slate-400 tracking-wider">
+              <div className="text-xs uppercase font-bold text-slate-500 tracking-wider">
                 Dispatched & Delivered
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">
+              <div className="text-2xl sm:text-3xl font-black text-emerald-700 mt-1">
                 {dispatchedOrders.length}{' '}
                 <span className="text-xs text-slate-400 font-semibold">Stickers</span>
               </div>
-              <div className="text-[11px] text-emerald-400 font-medium mt-1">Shipped via Express Post</div>
+              <div className="text-[11px] text-emerald-600 font-medium mt-1">Shipped via Express Post</div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-100 border border-emerald-200 text-emerald-700 flex items-center justify-center font-bold">
               <Truck className="w-6 h-6" />
             </div>
           </div>
 
           {/* Active Relays KPI */}
-          <div className="glass-card rounded-3xl p-5 border border-white/10 flex items-center justify-between">
+          <div className="bg-white rounded-3xl p-5 border border-slate-200 flex items-center justify-between shadow-sm">
             <div>
-              <div className="text-xs uppercase font-bold text-slate-400 tracking-wider">
+              <div className="text-xs uppercase font-bold text-slate-500 tracking-wider">
                 Active Vehicle Tags
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-cyan-400 mt-1">
+              <div className="text-2xl sm:text-3xl font-black text-blue-700 mt-1">
                 {tags.length} <span className="text-xs text-slate-400 font-semibold">Total</span>
               </div>
-              <div className="text-[11px] text-slate-400 mt-1">100% Number Masking Active</div>
+              <div className="text-[11px] text-slate-500 mt-1">100% Number Masking Active</div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 flex items-center justify-center font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-blue-100 border border-blue-200 text-blue-700 flex items-center justify-center font-bold">
               <ShieldCheck className="w-6 h-6" />
             </div>
           </div>
 
           {/* Total Revenue KPI */}
-          <div className="glass-card rounded-3xl p-5 border border-white/10 flex items-center justify-between">
+          <div className="bg-white rounded-3xl p-5 border border-slate-200 flex items-center justify-between shadow-sm">
             <div>
-              <div className="text-xs uppercase font-bold text-slate-400 tracking-wider">
+              <div className="text-xs uppercase font-bold text-slate-500 tracking-wider">
                 Total Orders Value
               </div>
-              <div className="text-2xl sm:text-3xl font-black text-white mt-1">
+              <div className="text-2xl sm:text-3xl font-black text-slate-950 mt-1">
                 ₹{(tags.length * 399).toLocaleString()}
               </div>
-              <div className="text-[11px] text-slate-400 mt-1">Online & Walk-In Payments</div>
+              <div className="text-[11px] text-slate-500 mt-1">Online & Walk-In Payments</div>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-yellow-400 flex items-center justify-center font-bold">
+            <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-200 text-amber-800 flex items-center justify-center font-bold">
               <ShoppingBag className="w-6 h-6" />
             </div>
           </div>
         </section>
 
-        {/* WORKFLOW BANNER: EXPLAINING AUTO-GENERATION & ADMIN PRINTING */}
-        <section className="p-4 sm:p-5 rounded-3xl bg-slate-900/90 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* WORKFLOW BANNER */}
+        <section className="p-4 sm:p-5 rounded-3xl bg-amber-50/80 border border-amber-200 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
           <div className="flex items-start gap-3.5">
-            <div className="w-10 h-10 rounded-2xl bg-yellow-400 text-black flex items-center justify-center shrink-0 mt-0.5 font-bold">
+            <div className="w-10 h-10 rounded-2xl bg-amber-400 text-slate-950 flex items-center justify-center shrink-0 mt-0.5 font-bold shadow-sm">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <div className="font-bold text-sm text-white flex items-center gap-2">
+              <div className="font-bold text-sm text-slate-950 flex items-center gap-2">
                 <span>Automatic QR Tag Generation is Live</span>
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/40">
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold">
                   Zero Manual Entry Needed
                 </span>
               </div>
-              <p className="text-xs text-slate-400 mt-0.5">
+              <p className="text-xs text-slate-600 mt-0.5 font-medium">
                 When customers place an order on your storefront, their vehicle specs and QR codes are <strong>automatically generated and ready below</strong>. You only need to click <strong>&ldquo;Print 3M Vinyl Sticker&rdquo;</strong> and dispatch it to their shipping address!
               </p>
             </div>
@@ -469,22 +462,22 @@ export default function MerchantAdminPage() {
           <button
             onClick={handleBatchPrintAllPending}
             disabled={pendingOrders.length === 0}
-            className="px-5 py-3 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs glow-yellow transition flex items-center justify-center gap-2 shrink-0 active:scale-95 disabled:opacity-40"
+            className="px-5 py-3 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs glow-yellow transition flex items-center justify-center gap-2 shrink-0 active:scale-95 disabled:opacity-40 shadow-md"
           >
             <Printer className="w-4 h-4" />
-            Batch Print All {pendingOrders.length} Pending Stickers (A4 Sheet)
+            <span>Batch Print All {pendingOrders.length} Pending Stickers (A4 Sheet)</span>
           </button>
         </section>
 
         {/* MERCHANT TAB CONTROLLER */}
-        <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-white/10">
-          <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-slate-900 border border-slate-800">
+        <section className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
+          <div className="flex flex-wrap items-center gap-2 p-1.5 rounded-2xl bg-slate-100 border border-slate-200">
             <button
               onClick={() => setActiveTab('orders_queue')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition ${
                 activeTab === 'orders_queue'
-                  ? 'bg-yellow-400 text-black shadow-md glow-yellow'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-amber-400 text-slate-950 shadow-sm glow-yellow'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <PackageCheck className="w-3.5 h-3.5" />
@@ -495,8 +488,8 @@ export default function MerchantAdminPage() {
               onClick={() => setActiveTab('inventory')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition ${
                 activeTab === 'inventory'
-                  ? 'bg-yellow-400 text-black shadow-md glow-yellow'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-amber-400 text-slate-950 shadow-sm glow-yellow'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <LayoutGrid className="w-3.5 h-3.5" />
@@ -507,8 +500,8 @@ export default function MerchantAdminPage() {
               onClick={() => setActiveTab('create_single')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition ${
                 activeTab === 'create_single'
-                  ? 'bg-yellow-400 text-black shadow-md glow-yellow'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-amber-400 text-slate-950 shadow-sm glow-yellow'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Plus className="w-3.5 h-3.5" />
@@ -519,8 +512,8 @@ export default function MerchantAdminPage() {
               onClick={() => setActiveTab('create_bulk')}
               className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition ${
                 activeTab === 'create_bulk'
-                  ? 'bg-yellow-400 text-black shadow-md glow-yellow'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-amber-400 text-slate-950 shadow-sm glow-yellow'
+                  : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Layers className="w-3.5 h-3.5" />
@@ -532,7 +525,7 @@ export default function MerchantAdminPage() {
             <button
               onClick={fetchTags}
               disabled={loading}
-              className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 transition"
+              className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 hover:text-slate-900 border border-slate-200 transition shadow-sm"
               title="Refresh orders list"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
@@ -544,20 +537,20 @@ export default function MerchantAdminPage() {
         {activeTab === 'orders_queue' && (
           <div className="space-y-6 animate-fadeIn">
             {/* Search & Fulfillment Filters */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-3xl bg-slate-950 border border-slate-800">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-4 rounded-3xl bg-white border border-slate-200 shadow-sm">
               <div className="relative flex-1">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-3.5" />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 <input
                   type="text"
                   placeholder="Search by Order ID (ORD-1092), Vehicle Number, Customer Phone, City..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full bg-slate-900 border border-slate-800 focus:border-yellow-400 rounded-2xl pl-10 pr-4 py-2.5 text-xs font-bold text-white placeholder:text-slate-500 focus:outline-none transition shadow-inner"
+                  className="w-full bg-slate-50 border border-slate-200 focus:border-amber-500 rounded-2xl pl-10 pr-4 py-2.5 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none transition shadow-inner"
                 />
                 {searchQuery && (
                   <button
                     onClick={() => setSearchQuery('')}
-                    className="absolute right-3.5 top-3 text-slate-500 hover:text-white"
+                    className="absolute right-3.5 top-3 text-slate-400 hover:text-slate-700"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -568,7 +561,7 @@ export default function MerchantAdminPage() {
                 <select
                   value={fulfillmentFilter}
                   onChange={(e) => setFulfillmentFilter(e.target.value as any)}
-                  className="bg-slate-900 border border-slate-800 text-slate-300 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"
+                  className="bg-slate-50 border border-slate-200 text-slate-700 rounded-xl px-3 py-2 text-xs font-bold focus:outline-none"
                 >
                   <option value="all">All Orders ({tags.length})</option>
                   <option value="pending_print">Pending Print ({pendingOrders.length})</option>
@@ -580,14 +573,14 @@ export default function MerchantAdminPage() {
             {/* Orders Cards List */}
             {loading ? (
               <div className="text-center py-20 text-slate-500">
-                <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
+                <div className="w-8 h-8 border-2 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
                 Loading orders queue...
               </div>
             ) : filteredOrders.length === 0 ? (
-              <div className="text-center py-20 glass-panel rounded-3xl border border-white/10 p-8">
-                <PackageCheck className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                <h4 className="text-lg font-bold text-white">No orders match this filter</h4>
-                <p className="text-xs text-slate-400 mt-1">All current orders are fulfilled or try changing search criteria.</p>
+              <div className="text-center py-20 bg-white rounded-3xl border border-slate-200 p-8 shadow-sm">
+                <PackageCheck className="w-12 h-12 text-slate-400 mx-auto mb-3" />
+                <h4 className="text-lg font-bold text-slate-900">No orders match this filter</h4>
+                <p className="text-xs text-slate-500 mt-1">All current orders are fulfilled or try changing search criteria.</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -598,16 +591,16 @@ export default function MerchantAdminPage() {
                   return (
                     <div
                       key={tag.id}
-                      className={`glass-card rounded-3xl p-6 border transition-all shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-6 ${
+                      className={`rounded-3xl p-5 sm:p-6 border transition-all shadow-md flex flex-col lg:flex-row lg:items-center justify-between gap-6 ${
                         isPending
-                          ? 'border-yellow-400/40 bg-slate-950/90'
-                          : 'border-white/10 bg-slate-950/50 opacity-90'
+                          ? 'border-amber-400/80 bg-white'
+                          : 'border-slate-200 bg-slate-50/70'
                       }`}
                     >
                       {/* Left Column: Order & Customer Details */}
                       <div className="flex items-start gap-4 flex-1">
                         {/* QR Code Preview Thumbnail */}
-                        <div className="shrink-0 bg-white p-2 rounded-2xl shadow-md border border-slate-200 flex flex-col items-center">
+                        <div className="shrink-0 bg-white p-2 rounded-2xl shadow-sm border border-slate-200 flex flex-col items-center">
                           <QRCodeCanvas value={scanUrl} size={76} level="M" />
                           <span className="text-[8px] font-black text-slate-900 uppercase tracking-tight mt-1">
                             Live QR
@@ -618,17 +611,17 @@ export default function MerchantAdminPage() {
                         <div className="space-y-1.5 flex-1 min-w-0">
                           {/* Order Header Line */}
                           <div className="flex flex-wrap items-center gap-2">
-                            <span className="font-mono font-black text-xs px-2.5 py-0.5 rounded-lg bg-yellow-400 text-black">
+                            <span className="font-mono font-black text-xs px-2.5 py-0.5 rounded-lg bg-amber-400 text-slate-950 shadow-sm">
                               {tag.orderId || tag.id}
                             </span>
                             
                             {isPending ? (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-yellow-400/15 text-yellow-400 border border-yellow-400/30">
-                                <span className="w-1.5 h-1.5 rounded-full bg-yellow-400 animate-ping" />
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-ping" />
                                 Ready to Print Sticker
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-emerald-400 border border-emerald-500/30">
+                              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                                 <CheckCircle2 className="w-3 h-3" />
                                 Dispatched / Shipped
                               </span>
@@ -641,7 +634,7 @@ export default function MerchantAdminPage() {
 
                           {/* Indian Vehicle Plate Look */}
                           <div className="flex items-center gap-3 pt-1">
-                            <div className="inline-flex items-center rounded-lg border-2 border-black bg-yellow-400 text-black shadow overflow-hidden">
+                            <div className="inline-flex items-center rounded-lg border-2 border-black bg-yellow-400 text-black shadow-sm overflow-hidden">
                               <span className="bg-blue-900 text-white px-1.5 py-0.5 text-[8px] font-black leading-none border-r border-black">
                                 IND
                               </span>
@@ -650,38 +643,38 @@ export default function MerchantAdminPage() {
                               </span>
                             </div>
 
-                            <span className="text-xs font-bold text-white truncate">
+                            <span className="text-xs font-bold text-slate-900 truncate">
                               {tag.vehicleModel || 'Vehicle'}
                             </span>
                           </div>
 
                           {/* Customer & Mobile */}
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-300 pt-0.5">
-                            <span className="font-semibold text-white">
+                          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-700 pt-0.5">
+                            <span className="font-semibold text-slate-900">
                               👤 {tag.ownerName || 'Customer'}
                             </span>
-                            <span className="text-slate-600">•</span>
-                            <span className="font-mono font-bold text-yellow-400 flex items-center gap-1">
-                              <Phone className="w-3 h-3 text-slate-500" />
+                            <span className="text-slate-300">•</span>
+                            <span className="font-mono font-bold text-amber-700 flex items-center gap-1">
+                              <Phone className="w-3 h-3 text-slate-400" />
                               {tag.phoneNumber}
                             </span>
-                            <span className="text-slate-600">•</span>
-                            <span className="text-[11px] text-emerald-400 font-bold">
+                            <span className="text-slate-300">•</span>
+                            <span className="text-[11px] text-emerald-700 font-bold">
                               ₹{tag.price || 399} ({tag.paymentStatus === 'cod' ? 'COD' : 'Paid Online'})
                             </span>
                           </div>
 
                           {/* Shipping Address */}
                           {tag.shippingAddress ? (
-                            <div className="text-[11px] text-slate-400 flex items-start gap-1.5 pt-1">
-                              <MapPin className="w-3.5 h-3.5 text-slate-500 shrink-0 mt-0.5" />
+                            <div className="text-[11px] text-slate-600 flex items-start gap-1.5 pt-1 font-medium">
+                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5" />
                               <span>
                                 {tag.shippingAddress.street}, {tag.shippingAddress.city}, {tag.shippingAddress.state} -{' '}
-                                <strong className="text-slate-300 font-mono">{tag.shippingAddress.pincode}</strong>
+                                <strong className="text-slate-900 font-mono">{tag.shippingAddress.pincode}</strong>
                               </span>
                             </div>
                           ) : (
-                            <div className="text-[11px] text-slate-500 italic">
+                            <div className="text-[11px] text-slate-400 italic">
                               Direct / Walk-In Generation
                             </div>
                           )}
@@ -689,11 +682,11 @@ export default function MerchantAdminPage() {
                       </div>
 
                       {/* Right Column: Store Owner Action Buttons */}
-                      <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-white/10 shrink-0">
+                      <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between gap-3 pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-200 shrink-0">
                         {/* Primary Print Button */}
                         <button
                           onClick={() => setSelectedTagForPrint(tag)}
-                          className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs glow-yellow transition flex items-center justify-center gap-2 active:scale-95 shadow-md"
+                          className="w-full sm:w-auto px-5 py-2.5 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs glow-yellow transition flex items-center justify-center gap-2 active:scale-95 shadow-md"
                         >
                           <Printer className="w-4 h-4" />
                           <span>Print 3M Sticker</span>
@@ -704,16 +697,16 @@ export default function MerchantAdminPage() {
                           <button
                             onClick={() => handleUpdateFulfillment(tag.id, 'dispatched')}
                             disabled={statusUpdatingId === tag.id}
-                            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-slate-900 hover:bg-emerald-950 text-emerald-400 border border-emerald-500/40 text-xs font-bold transition flex items-center justify-center gap-1.5"
+                            className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold transition flex items-center justify-center gap-1.5"
                           >
-                            <Truck className="w-3.5 h-3.5" />
+                            <Truck className="w-3.5 h-3.5 text-emerald-600" />
                             <span>Mark as Dispatched</span>
                           </button>
                         ) : (
                           <button
                             onClick={() => handleUpdateFulfillment(tag.id, 'pending_print')}
                             disabled={statusUpdatingId === tag.id}
-                            className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-slate-900 text-slate-400 hover:text-white border border-slate-800 text-[11px] font-semibold transition"
+                            className="w-full sm:w-auto px-3 py-1.5 rounded-xl bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 text-[11px] font-semibold transition"
                           >
                             Move to Pending Print
                           </button>
@@ -724,7 +717,7 @@ export default function MerchantAdminPage() {
                           href={`/p/${tag.id}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-[11px] text-cyan-400 hover:underline flex items-center gap-1 font-bold"
+                          className="text-[11px] text-blue-600 hover:underline flex items-center gap-1 font-bold"
                         >
                           <ExternalLink className="w-3 h-3" /> Test Passerby Scan
                         </a>
@@ -756,29 +749,28 @@ export default function MerchantAdminPage() {
 
         {/* TAB 3: WALK-IN MANUAL GENERATOR */}
         {activeTab === 'create_single' && (
-          <div className="glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl relative overflow-hidden animate-fadeIn">
-            <div className="max-w-2xl pb-6 border-b border-white/10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 text-xs font-black uppercase tracking-wider mb-2">
-                <Sparkles className="w-3.5 h-3.5" />
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl relative overflow-hidden animate-fadeIn">
+            <div className="max-w-2xl pb-6 border-b border-slate-200">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-black uppercase tracking-wider mb-2">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600" />
                 Walk-In Customer Studio
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-white">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-950">
                 Generate Smart Tag for Walk-In Customer
               </h2>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
                 Enter vehicle plate number to auto-fetch Vahan RTO details, link the customer&apos;s phone number, and print the sticker instantly.
               </p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 pt-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 sm:gap-10 pt-6 sm:pt-8 items-start">
               <form onSubmit={handleCreateSingle} className="lg:col-span-7 space-y-5">
-                {/* Vehicle Plate Input */}
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5 flex items-center justify-between">
+                  <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5 flex items-center justify-between">
                     <span>Vehicle Registration Number *</span>
                     {singleVahanLoading && (
-                      <span className="text-[10px] text-cyan-400 font-bold flex items-center gap-1">
-                        <div className="w-2.5 h-2.5 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-[10px] text-blue-600 font-bold flex items-center gap-1">
+                        <div className="w-2.5 h-2.5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                         Fetching Vahan RTO details...
                       </span>
                     )}
@@ -790,7 +782,7 @@ export default function MerchantAdminPage() {
                       placeholder="e.g. DL 01 AB 1234 or MH 12 AB 9999"
                       value={singlePlate}
                       onChange={(e) => handleSinglePlateChange(e.target.value)}
-                      className="w-full bg-slate-900 border-2 border-slate-700 focus:border-yellow-400 rounded-2xl px-4 py-3 text-lg font-mono font-black text-yellow-400 placeholder:text-slate-600 uppercase focus:outline-none transition shadow-inner"
+                      className="w-full bg-slate-50 border-2 border-slate-300 focus:border-amber-500 rounded-2xl px-4 py-3 text-lg font-mono font-black text-slate-950 placeholder:text-slate-400 uppercase focus:outline-none transition shadow-inner"
                     />
                     <div className="absolute right-3.5 top-3.5 px-2.5 py-1 rounded bg-blue-900 text-white font-black text-[10px] font-mono tracking-wider">
                       IND
@@ -798,29 +790,27 @@ export default function MerchantAdminPage() {
                   </div>
                 </div>
 
-                {/* Vahan Details Auto-Card */}
                 {singleVahanDetails && (
-                  <div className="p-4 rounded-2xl bg-slate-900 border border-emerald-500/40 flex items-center justify-between gap-3 text-xs animate-fadeIn shadow-md">
+                  <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-300 flex items-center justify-between gap-3 text-xs animate-fadeIn shadow-sm">
                     <div>
-                      <div className="font-bold text-white flex items-center gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                      <div className="font-bold text-slate-900 flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                         <span>{singleVahanDetails.model}</span>
-                        <span className="text-[10px] text-slate-400 font-normal">({singleVahanDetails.color})</span>
+                        <span className="text-[10px] text-slate-500 font-normal">({singleVahanDetails.color})</span>
                       </div>
-                      <div className="text-[11px] text-slate-400 mt-1">
-                        {singleVahanDetails.rtoLocation} • Fuel: <strong className="text-yellow-400">{singleVahanDetails.fuelType}</strong>
+                      <div className="text-[11px] text-slate-600 mt-1">
+                        {singleVahanDetails.rtoLocation} • Fuel: <strong className="text-amber-700">{singleVahanDetails.fuelType}</strong>
                       </div>
                     </div>
-                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-950 text-emerald-400 border border-emerald-500/50 shrink-0">
+                    <span className="text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
                       ✓ RTO Verified
                     </span>
                   </div>
                 )}
 
-                {/* Customer Details Row */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5">
+                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
                       Customer Name
                     </label>
                     <input
@@ -828,69 +818,40 @@ export default function MerchantAdminPage() {
                       placeholder="e.g. Rahul Sharma"
                       value={singleOwnerName}
                       onChange={(e) => setSingleOwnerName(e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 focus:border-yellow-400 rounded-xl px-3.5 py-2.5 text-xs font-bold text-white placeholder:text-slate-600 focus:outline-none transition"
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none transition"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5">
+                    <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1.5">
                       Customer Mobile Number *
                     </label>
                     <div className="relative">
-                      <Phone className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                      <Phone className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
                       <input
                         type="tel"
                         required
                         placeholder="+91 98765 43210"
                         value={singlePhone}
                         onChange={(e) => setSinglePhone(e.target.value)}
-                        className="w-full bg-slate-900 border border-slate-700 focus:border-yellow-400 rounded-xl pl-9 pr-3.5 py-2.5 text-xs font-bold text-white placeholder:text-slate-600 focus:outline-none transition"
+                        className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-xl pl-9 pr-3.5 py-2.5 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none transition"
                       />
                     </div>
                   </div>
                 </div>
 
-                {/* Sticker Theme Selector */}
                 <div>
-                  <label className="block text-xs font-black uppercase tracking-wider text-slate-200 mb-1.5">
-                    Sticker Design Theme:
-                  </label>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { id: 'amber_neon', name: 'Amber Neon' },
-                      { id: 'dark_carbon', name: 'Dark Carbon' },
-                      { id: 'cyber_cyan', name: 'Cyber Cyan' },
-                      { id: 'clean_white', name: 'Clean White' },
-                    ].map((t) => (
-                      <button
-                        key={t.id}
-                        type="button"
-                        onClick={() => setSingleTheme(t.id as BadgeTheme)}
-                        className={`p-2.5 rounded-xl border-2 text-xs font-bold capitalize transition ${
-                          singleTheme === t.id
-                            ? 'border-yellow-400 bg-yellow-400/15 text-yellow-400 shadow-md'
-                            : 'border-slate-800 bg-slate-900 text-slate-400 hover:border-slate-700'
-                        }`}
-                      >
-                        {t.name}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Submit Action */}
-                <div className="pt-2">
                   <button
                     type="submit"
                     disabled={isCreatingSingle}
-                    className="w-full py-4 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm tracking-wide glow-yellow transition flex items-center justify-center gap-2 active:scale-95 shadow-xl disabled:opacity-50"
+                    className="w-full py-4 px-8 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm tracking-wide glow-yellow transition flex items-center justify-center gap-2 active:scale-95 shadow-md disabled:opacity-50"
                   >
                     {isCreatingSingle ? (
-                      <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                      <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4" />
-                        Generate & Open Print Modal
+                        <span>Generate & Open Print Modal</span>
                       </>
                     )}
                   </button>
@@ -898,9 +859,9 @@ export default function MerchantAdminPage() {
               </form>
 
               {/* Right Live Sticker Preview */}
-              <div className="lg:col-span-5 flex flex-col items-center justify-center p-6 rounded-3xl bg-slate-950 border border-slate-800 shadow-2xl">
-                <div className="text-xs font-black uppercase tracking-widest text-slate-400 mb-4 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
+              <div className="lg:col-span-5 flex flex-col items-center justify-center p-5 sm:p-7 rounded-3xl bg-gradient-to-b from-slate-900 to-slate-950 border border-slate-800 shadow-xl">
+                <div className="text-xs font-black uppercase tracking-widest text-slate-300 mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping" />
                   Live Sticker 300 DPI Preview
                 </div>
                 <PrintableBadge
@@ -926,13 +887,13 @@ export default function MerchantAdminPage() {
 
         {/* TAB 4: BULK FLEET GENERATOR */}
         {activeTab === 'create_bulk' && (
-          <div className="glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl relative overflow-hidden animate-fadeIn">
-            <div className="max-w-2xl pb-6 border-b border-white/10">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-black uppercase tracking-wider mb-2">
-                <Layers className="w-3.5 h-3.5" />
+          <div className="bg-white rounded-3xl p-6 sm:p-10 border border-slate-200 shadow-xl relative overflow-hidden animate-fadeIn">
+            <div className="max-w-2xl pb-6 border-b border-slate-200">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-black uppercase tracking-wider mb-2">
+                <Layers className="w-3.5 h-3.5 text-blue-600" />
                 Fleet & Multi-Car Bulk Generator
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black text-white">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-950">
                 Generate Multiple Vehicle Tags at Once
               </h2>
             </div>
@@ -942,9 +903,9 @@ export default function MerchantAdminPage() {
                 {bulkRows.map((row, index) => (
                   <div
                     key={row.id}
-                    className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 flex flex-col md:flex-row items-start md:items-center gap-3"
+                    className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col md:flex-row items-start md:items-center gap-3"
                   >
-                    <span className="w-7 h-7 rounded-xl bg-slate-800 flex items-center justify-center text-xs font-mono font-bold text-yellow-400 shrink-0">
+                    <span className="w-7 h-7 rounded-xl bg-slate-200 flex items-center justify-center text-xs font-mono font-bold text-slate-800 shrink-0">
                       #{index + 1}
                     </span>
 
@@ -955,7 +916,7 @@ export default function MerchantAdminPage() {
                         placeholder="Plate (e.g. DL 01 AB 1234)"
                         value={row.vehicleNumber}
                         onChange={(e) => handleUpdateBulkRow(row.id, 'vehicleNumber', e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-xs font-mono font-bold text-yellow-400 placeholder:text-slate-600 uppercase focus:outline-none"
+                        className="w-full bg-white border border-slate-300 focus:border-amber-500 rounded-xl px-3 py-2.5 text-xs font-mono font-bold text-slate-900 placeholder:text-slate-400 uppercase focus:outline-none"
                       />
                     </div>
 
@@ -966,7 +927,7 @@ export default function MerchantAdminPage() {
                         placeholder="Mobile Number"
                         value={row.phoneNumber}
                         onChange={(e) => handleUpdateBulkRow(row.id, 'phoneNumber', e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-xs font-bold text-white placeholder:text-slate-600 focus:outline-none"
+                        className="w-full bg-white border border-slate-300 focus:border-amber-500 rounded-xl px-3 py-2.5 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none"
                       />
                     </div>
 
@@ -976,7 +937,7 @@ export default function MerchantAdminPage() {
                         placeholder="Model (e.g. Honda City / Creta)"
                         value={row.vehicleModel}
                         onChange={(e) => handleUpdateBulkRow(row.id, 'vehicleModel', e.target.value)}
-                        className="w-full bg-slate-950 border border-slate-700 focus:border-yellow-400 rounded-xl px-3 py-2.5 text-xs text-white placeholder:text-slate-600 focus:outline-none"
+                        className="w-full bg-white border border-slate-300 focus:border-amber-500 rounded-xl px-3 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 focus:outline-none"
                       />
                     </div>
 
@@ -984,7 +945,7 @@ export default function MerchantAdminPage() {
                       type="button"
                       onClick={() => handleRemoveBulkRow(row.id)}
                       disabled={bulkRows.length <= 1}
-                      className="text-slate-500 hover:text-rose-400 p-2 rounded-lg hover:bg-slate-800 disabled:opacity-30 transition self-end md:self-auto"
+                      className="text-slate-400 hover:text-rose-600 p-2 rounded-lg hover:bg-slate-200 disabled:opacity-30 transition self-end md:self-auto"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -992,27 +953,27 @@ export default function MerchantAdminPage() {
                 ))}
               </div>
 
-              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-white/10">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-200">
                 <button
                   type="button"
                   onClick={handleAddBulkRow}
-                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition border border-slate-700"
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition border border-slate-300"
                 >
-                  <Plus className="w-4 h-4 text-yellow-400" />
-                  + Add Another Vehicle Row
+                  <Plus className="w-4 h-4 text-amber-600" />
+                  <span>+ Add Another Vehicle Row</span>
                 </button>
 
                 <button
                   type="submit"
                   disabled={isCreatingBulk}
-                  className="w-full sm:w-auto py-3.5 px-8 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm glow-yellow transition flex items-center justify-center gap-2 disabled:opacity-50"
+                  className="w-full sm:w-auto py-3.5 px-8 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm glow-yellow transition flex items-center justify-center gap-2 disabled:opacity-50 shadow-md"
                 >
                   {isCreatingBulk ? (
-                    <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                    <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4" />
-                      Generate & Print Batch Sheet
+                      <span>Generate & Print Batch Sheet</span>
                     </>
                   )}
                 </button>
@@ -1022,18 +983,18 @@ export default function MerchantAdminPage() {
         )}
       </main>
 
-      {/* MODAL: SINGLE STICKER PRINT & HIGH-RES PNG DOWNLOAD */}
+      {/* MODAL: SINGLE STICKER PRINT */}
       {selectedTagForPrint && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto no-print">
-          <div className="w-full max-w-md rounded-3xl bg-slate-950 border border-slate-800 p-6 flex flex-col items-center shadow-2xl relative">
-            <div className="w-full flex items-center justify-between pb-3 mb-2 border-b border-white/10">
-              <div className="text-xs font-black uppercase tracking-wider text-yellow-400 flex items-center gap-1.5">
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto no-print">
+          <div className="w-full max-w-md rounded-3xl bg-white border border-slate-200 p-6 flex flex-col items-center shadow-2xl relative text-slate-900">
+            <div className="w-full flex items-center justify-between pb-3 mb-2 border-b border-slate-200">
+              <div className="text-xs font-black uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
                 <Printer className="w-4 h-4" />
                 Physical Sticker Print & 300 DPI Export
               </div>
               <button
                 onClick={() => setSelectedTagForPrint(null)}
-                className="p-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white"
+                className="p-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-900"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1054,7 +1015,7 @@ export default function MerchantAdminPage() {
         </div>
       )}
 
-      {/* MODAL: BATCH PRINT SHEET (A4 / Thermal) */}
+      {/* MODAL: BATCH PRINT SHEET */}
       {showBulkPrintModal && (
         <BulkPrintModal
           tags={tags.filter((t) =>
@@ -1071,19 +1032,19 @@ export default function MerchantAdminPage() {
       {showLogsModal && <ActivityLogsModal onClose={() => setShowLogsModal(false)} />}
 
       {/* MERCHANT FOOTER */}
-      <footer className="w-full border-t border-slate-800/80 py-8 px-4 sm:px-8 mt-16 no-print bg-[#050810]">
+      <footer className="w-full border-t border-slate-200 py-8 px-4 sm:px-8 mt-16 no-print bg-white">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-slate-300">ParkPing Store Owner Fulfillment Console</span>
+            <span className="font-bold text-slate-800">ParkPing Store Owner Fulfillment Console</span>
             <span>•</span>
             <span>Zero Manual Generation · Instant Print & Ship</span>
           </div>
 
-          <div className="flex items-center gap-4 text-slate-400">
-            <Link href="/" className="hover:text-yellow-400">
+          <div className="flex items-center gap-4 text-slate-600 font-semibold">
+            <Link href="/" className="hover:text-amber-600">
               Customer Storefront
             </Link>
-            <button onClick={() => setShowLogsModal(true)} className="hover:text-yellow-400">
+            <button onClick={() => setShowLogsModal(true)} className="hover:text-amber-600">
               Live Audit Logs
             </button>
           </div>
