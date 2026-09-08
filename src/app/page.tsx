@@ -10,6 +10,7 @@ import ActivityLogsModal from '@/components/ActivityLogsModal';
 import WindshieldSimulator from '@/components/WindshieldSimulator';
 import PasserbyMobileMockup from '@/components/PasserbyMobileMockup';
 import StickerShowcase from '@/components/StickerShowcase';
+import CheckoutOrderModal from '@/components/CheckoutOrderModal';
 import { VehicleTag, BadgeTheme } from '@/lib/types';
 import { 
   Car, 
@@ -33,7 +34,9 @@ import {
   Check,
   Phone,
   MessageSquare,
-  ShieldAlert
+  ShieldAlert,
+  ShoppingCart,
+  Truck
 } from 'lucide-react';
 
 export default function HomePage() {
@@ -43,6 +46,7 @@ export default function HomePage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'dnd' | 'inactive'>('all');
   
   // Modals
+  const [showCheckout, setShowCheckout] = useState(false);
   const [selectedPrintTag, setSelectedPrintTag] = useState<VehicleTag | null>(null);
   const [showBulkPrint, setShowBulkPrint] = useState(false);
   const [showLogs, setShowLogs] = useState(false);
@@ -112,7 +116,7 @@ export default function HomePage() {
         totalPings={tags.reduce((acc, t) => acc + (t.scanCount || 0), 0)}
         onOpenBulkPrint={() => setShowBulkPrint(true)}
         onOpenLogs={() => setShowLogs(true)}
-        onScrollToGenerator={() => scrollToSection(generatorRef)}
+        onScrollToGenerator={() => setShowCheckout(true)}
         onScrollToHowItWorks={() => scrollToSection(howItWorksRef)}
         onScrollToGarage={() => scrollToSection(garageRef)}
         onScrollToSimulator={() => scrollToSection(simulatorRef)}
@@ -123,7 +127,7 @@ export default function HomePage() {
         {/* HERO SECTION */}
         <section className="relative pt-6 pb-12 flex flex-col lg:flex-row lg:items-center justify-between gap-12">
           <div className="lg:max-w-2xl space-y-6">
-            {/* Top Star Badge */}
+            {/* Top Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 text-xs font-black uppercase tracking-wider">
               <Star className="w-3.5 h-3.5 fill-yellow-400" />
               <span>Smart Vehicle Privacy Tag · Masked Calling & WhatsApp</span>
@@ -139,17 +143,18 @@ export default function HomePage() {
 
             {/* Subhead */}
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
-              Stick the ParkPing smart tag on your car or bike. If there&apos;s ever a problem, someone is blocked, or lights are left on, people scan it with any phone camera and reach you on a <strong>masked call or WhatsApp</strong>. Your personal mobile number stays completely private.
+              Stick the ParkPing smart tag on your car or bike. If you&apos;re parked in a tight spot, blocking someone, or lights are left on, people scan it with any phone camera and reach you on a <strong>masked call or WhatsApp</strong>. Your personal mobile number stays completely private.
             </p>
 
-            {/* CTA Buttons */}
+            {/* Pricing & Buy CTA */}
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
-                onClick={() => scrollToSection(generatorRef)}
-                className="py-4 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm tracking-wide glow-yellow transition transform active:scale-95 flex items-center gap-2"
+                onClick={() => setShowCheckout(true)}
+                className="py-4 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm tracking-wide glow-yellow transition transform active:scale-95 flex items-center gap-2.5"
               >
-                <Sparkles className="w-5 h-5" />
-                Generate Free eTag Now
+                <ShoppingCart className="w-4 h-4" />
+                Buy Smart Tag · ₹399
+                <span className="text-xs opacity-75 line-through">₹799</span>
                 <ArrowRight className="w-4 h-4" />
               </button>
 
@@ -169,13 +174,13 @@ export default function HomePage() {
               </div>
               <span className="text-slate-700">•</span>
               <div className="flex items-center gap-1.5 text-slate-300">
-                <Check className="w-4 h-4 text-yellow-400 font-bold" />
-                <span>Works with Any Phone Camera</span>
+                <Truck className="w-4 h-4 text-yellow-400 font-bold" />
+                <span>Free Delivery Across India</span>
               </div>
               <span className="text-slate-700">•</span>
               <div className="flex items-center gap-1.5 text-slate-300">
                 <Check className="w-4 h-4 text-yellow-400 font-bold" />
-                <span>Multi-Car Support</span>
+                <span>Auto Vahan Details Lookup</span>
               </div>
             </div>
           </div>
@@ -191,7 +196,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* THREE STEPS: HOW IT WORKS SECTION */}
+        {/* THREE STEPS SECTION */}
         <section ref={howItWorksRef} className="scroll-mt-24 pt-4">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <p className="text-xs font-black uppercase tracking-widest text-yellow-400 mb-2">
@@ -255,9 +260,9 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold mb-4 shadow">
               <Zap className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white mb-1.5">Instant Free eTag</h3>
+            <h3 className="text-base font-bold text-white mb-1.5">Auto Vahan Details & eTag</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Get printable sticker badges instantly. Change your phone number anytime in cloud without reprinting!
+              Automatic vehicle details lookup from RTO. Get instant printable digital eTag + 3M waterproof sticker delivered.
             </p>
           </div>
         </section>
@@ -274,7 +279,7 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* INSTANT ETAG GENERATOR STUDIO */}
+        {/* INSTANT ETAG GENERATOR & ORDER CTA */}
         <section ref={generatorRef} className="scroll-mt-24">
           <TagGenerator onTagsCreated={handleTagsCreated} />
         </section>
@@ -338,13 +343,13 @@ export default function HomePage() {
               <Car className="w-12 h-12 text-slate-600 mx-auto mb-3" />
               <div className="text-base font-bold text-white">No Vehicles Found</div>
               <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1 mb-4">
-                No car scanner matched your filter. Use the generator above to add a car to your garage.
+                No car scanner matched your filter. Order a smart tag to add a car to your garage.
               </p>
               <button
-                onClick={() => scrollToSection(generatorRef)}
+                onClick={() => setShowCheckout(true)}
                 className="px-4 py-2 rounded-xl bg-yellow-400 text-black font-black text-xs glow-yellow"
               >
-                + Add Car Tag
+                + Buy Smart Tag
               </button>
             </div>
           ) : (
@@ -398,10 +403,10 @@ export default function HomePage() {
             <div className="p-5 rounded-2xl bg-slate-900/60 border border-slate-800">
               <h4 className="text-sm font-bold text-white flex items-center gap-2 mb-1.5">
                 <HelpCircle className="w-4 h-4 text-yellow-400 shrink-0" />
-                Can I have tags for 2 or 3 cars in my family?
+                Can I order tags for 2 or 3 cars in my family?
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                Yes! You can generate tags for multiple cars in a single batch. Each car can have its own designated driver phone number or share the primary family mobile number.
+                Yes! You can choose the 2-Car Combo (₹699) or 3-Car Family Pack (₹899). Each car can have its own designated driver phone number or share the primary family mobile number.
               </p>
             </div>
 
@@ -435,8 +440,8 @@ export default function HomePage() {
             <button onClick={() => scrollToSection(howItWorksRef)} className="hover:text-yellow-400">
               How it works
             </button>
-            <button onClick={() => scrollToSection(generatorRef)} className="hover:text-yellow-400">
-              Create eTag
+            <button onClick={() => setShowCheckout(true)} className="hover:text-yellow-400">
+              Buy Smart Tag
             </button>
             <button onClick={() => scrollToSection(garageRef)} className="hover:text-yellow-400">
               My Garage
@@ -447,6 +452,14 @@ export default function HomePage() {
           </div>
         </div>
       </footer>
+
+      {/* CHECKOUT / ORDER MODAL */}
+      {showCheckout && (
+        <CheckoutOrderModal
+          onClose={() => setShowCheckout(false)}
+          onOrderCompleted={handleTagsCreated}
+        />
+      )}
 
       {/* SINGLE PRINT MODAL */}
       {selectedPrintTag && (
