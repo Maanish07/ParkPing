@@ -81,3 +81,26 @@ export interface CreateTagInput {
   price?: number;
 }
 
+export type AdminRole = 
+  | 'Super Admin'
+  | 'Fulfillment Manager'
+  | 'Print Operator'
+  | 'Support Agent';
+
+export interface AdminMember {
+  id: string;
+  name: string;
+  email: string;
+  password?: string;
+  role: AdminRole;
+  createdAt: string;
+  isSuperAdmin?: boolean;
+}
+
+export interface CreateAdminMemberInput {
+  name: string;
+  email: string;
+  password: string;
+  role: AdminRole;
+}
+

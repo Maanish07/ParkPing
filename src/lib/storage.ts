@@ -202,3 +202,86 @@ export function getPingLogs(tagId?: string): PingLog[] {
   }
   return memoryLogs;
 }
+
+// ---------------- ADMIN MEMBERS & STAFF MANAGEMENT ----------------
+import { AdminMember, CreateAdminMemberInput } from './types';
+
+const INITIAL_ADMIN_MEMBERS: AdminMember[] = [
+  {
+    id: 'adm-super',
+    name: 'Super Admin',
+    email: 'admin@parkping.com',
+    password: 'admin123',
+    role: 'Super Admin',
+    createdAt: new Date().toISOString(),
+    isSuperAdmin: true,
+  },
+  {
+    id: 'adm-ops',
+    name: 'Operations Dispatch',
+    email: 'dispatch@parkping.com',
+    password: 'dispatch123',
+    role: 'Fulfillment Manager',
+    createdAt: new Date().toISOString(),
+    isSuperAdmin: false,
+  },
+];
+
+let memoryAdminMembers: AdminMember[] = [...INITIAL_ADMIN_MEMBERS];
+
+export function getAllAdminMembers(): AdminMember[] {
+  return memoryAdminMembers.map(({ password, ...m }) => m as AdminMember);
+}
+
+export function getAllAdminMembersWithPass(): AdminMember[] {
+  return memoryAdminMembers;
+}
+
+export function addAdminMember(input: CreateAdminMemberInput): AdminMember {
+  const newMember: AdminMember = {
+    id: `adm-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+    name: input.name.trim(),
+    email: input.email.trim().toLowerCase(),
+    password: input.password.trim(),
+    role: input.role,
+    createdAt: new Date().toISOString(),
+    isSuperAdmin: false,
+  };
+  memoryAdminMembers.push(newMember);
+  return newMember;
+}
+
+export function deleteAdminMember(id: string): boolean {
+  const member = memoryAdminMembers.find(m => m.id === id);
+  if (member?.isSuperAdmin) return false; // Super admin cannot be deleted
+  const initialLen = memoryAdminMembers.length;
+  memoryAdminMembers = memoryAdminMembers.filter(m => m.id !== id);
+  return memoryAdminMembers.length < initialLen;
+}
+
+export function verifyAdminCredentials(email: string, password: string): AdminMember | null {
+  const cleanEmail = email.trim().toLowerCase();
+  const cleanPass = password.trim();
+
+  // Environment fallback
+  const envEmail = (process.env.ADMIN_EMAIL || 'admin@parkping.com').trim().toLowerCase();
+  const envPass = (process.env.ADMIN_PASSWORD || 'admin123').trim();
+  if (cleanEmail === envEmail && cleanPass === envPass) {
+    const existing = memoryAdminMembers.find(m => m.email.toLowerCase() === envEmail);
+    if (existing) return existing;
+    return {
+      id: 'adm-env',
+      name: 'Super Admin',
+      email: envEmail,
+      role: 'Super Admin',
+      createdAt: new Date().toISOString(),
+      isSuperAdmin: true,
+    };
+  }
+
+  // Check stored members
+  const member = memoryAdminMembers.find(
+    m => m.email.toLowerCase() === cleanEmail && m.password === cleanPass
+  );
+  return member || null;
+}

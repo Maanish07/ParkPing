@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { VehicleTag, TagStatus, BadgeTheme, VehicleType, FulfillmentStatus } from '@/lib/types';
+import { VehicleTag, TagStatus, BadgeTheme, VehicleType, FulfillmentStatus, AdminMember, AdminRole } from '@/lib/types';
 import { formatVehicleNumber } from '@/lib/mask';
 import { VehicleDetails } from '@/lib/vahan';
 import TagCard from '@/components/TagCard';
@@ -36,7 +36,13 @@ import {
   Lock,
   Mail,
   Key,
-  LogOut
+  LogOut,
+  Users,
+  UserPlus,
+  UserCheck,
+  UserX,
+  Shield,
+  Check
 } from 'lucide-react';
 
 export default function MerchantAdminPage() {
@@ -46,6 +52,7 @@ export default function MerchantAdminPage() {
   const [adminPassword, setAdminPassword] = useState('');
   const [authError, setAuthError] = useState('');
   const [loggingIn, setLoggingIn] = useState(false);
+  const [loggedInAdmin, setLoggedInAdmin] = useState<AdminMember | null>(null);
 
   const [tags, setTags] = useState<VehicleTag[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,8 +60,8 @@ export default function MerchantAdminPage() {
   const [fulfillmentFilter, setFulfillmentFilter] = useState<'all' | FulfillmentStatus>('all');
   const [statusFilter, setStatusFilter] = useState<'all' | TagStatus>('all');
 
-  // Active Main Tab: 'orders_queue' (Default) | 'inventory' | 'create_single' | 'create_bulk'
-  const [activeTab, setActiveTab] = useState<'orders_queue' | 'inventory' | 'create_single' | 'create_bulk'>('orders_queue');
+  // Active Main Tab: 'orders_queue' (Default) | 'inventory' | 'create_single' | 'create_bulk' | 'team_members'
+  const [activeTab, setActiveTab] = useState<'orders_queue' | 'inventory' | 'create_single' | 'create_bulk' | 'team_members'>('orders_queue');
 
   // Modals state
   const [selectedTagForPrint, setSelectedTagForPrint] = useState<VehicleTag | null>(null);
@@ -62,6 +69,16 @@ export default function MerchantAdminPage() {
   const [showLogsModal, setShowLogsModal] = useState(false);
   const [selectedTagIdsForBatch, setSelectedTagIdsForBatch] = useState<string[]>([]);
   const [statusUpdatingId, setStatusUpdatingId] = useState<string | null>(null);
+
+  // Team & Staff Members State
+  const [members, setMembers] = useState<AdminMember[]>([]);
+  const [loadingMembers, setLoadingMembers] = useState(false);
+  const [newMemberName, setNewMemberName] = useState('');
+  const [newMemberEmail, setNewMemberEmail] = useState('');
+  const [newMemberPassword, setNewMemberPassword] = useState('');
+  const [newMemberRole, setNewMemberRole] = useState<AdminRole>('Fulfillment Manager');
+  const [addingMember, setAddingMember] = useState(false);
+  const [memberSuccessMsg, setMemberSuccessMsg] = useState('');
 
   // Manual Walk-In Single Tag Generator State
   const [singlePlate, setSinglePlate] = useState('');
@@ -111,11 +128,34 @@ export default function MerchantAdminPage() {
     }
   };
 
+  // Fetch Team Members from API
+  const fetchMembers = async () => {
+    setLoadingMembers(true);
+    try {
+      const res = await fetch('/api/admin/members');
+      const data = await res.json();
+      if (data.success && Array.isArray(data.members)) {
+        setMembers(data.members);
+      }
+    } catch (e) {
+      console.error('Error loading admin members:', e);
+    } finally {
+      setLoadingMembers(false);
+    }
+  };
+
   useEffect(() => {
     const token = typeof window !== 'undefined' ? localStorage.getItem('parkping_admin_token') : null;
+    const storedUser = typeof window !== 'undefined' ? localStorage.getItem('parkping_admin_user') : null;
     if (token) {
       setIsAuthenticated(true);
+      if (storedUser) {
+        try {
+          setLoggedInAdmin(JSON.parse(storedUser));
+        } catch {}
+      }
       fetchTags();
+      fetchMembers();
     }
     setAuthChecking(false);
   }, []);
@@ -134,8 +174,13 @@ export default function MerchantAdminPage() {
       const data = await res.json();
       if (data.success && data.token) {
         localStorage.setItem('parkping_admin_token', data.token);
+        if (data.admin) {
+          localStorage.setItem('parkping_admin_user', JSON.stringify(data.admin));
+          setLoggedInAdmin(data.admin);
+        }
         setIsAuthenticated(true);
         fetchTags();
+        fetchMembers();
       } else {
         setAuthError(data.error || 'Invalid credentials');
       }
@@ -148,8 +193,61 @@ export default function MerchantAdminPage() {
 
   const handleLogout = () => {
     localStorage.removeItem('parkping_admin_token');
+    localStorage.removeItem('parkping_admin_user');
     setIsAuthenticated(false);
+    setLoggedInAdmin(null);
     setAdminPassword('');
+  };
+
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMemberName.trim() || !newMemberEmail.trim() || !newMemberPassword.trim()) {
+      alert('Please fill in all member fields');
+      return;
+    }
+    setAddingMember(true);
+    try {
+      const res = await fetch('/api/admin/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: newMemberName,
+          email: newMemberEmail,
+          password: newMemberPassword,
+          role: newMemberRole,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.member) {
+        setMembers((prev) => [...prev, data.member]);
+        setNewMemberName('');
+        setNewMemberEmail('');
+        setNewMemberPassword('');
+        setMemberSuccessMsg(`Team member ${data.member.name} (${data.member.email}) created successfully! They can now log in.`);
+        setTimeout(() => setMemberSuccessMsg(''), 6000);
+      } else {
+        alert(data.error || 'Failed to add team member');
+      }
+    } catch (err: any) {
+      alert(err.message || 'Error adding team member');
+    } finally {
+      setAddingMember(false);
+    }
+  };
+
+  const handleDeleteMember = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to revoke admin access for ${name}?`)) return;
+    try {
+      const res = await fetch(`/api/admin/members?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (data.success) {
+        setMembers((prev) => prev.filter((m) => m.id !== id));
+      } else {
+        alert(data.error || 'Failed to remove member');
+      }
+    } catch (e) {
+      console.error(e);
+    }
   };
 
   // Update Fulfillment Status
@@ -516,7 +614,17 @@ export default function MerchantAdminPage() {
           </div>
 
           {/* Right Header Controls */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {loggedInAdmin && (
+              <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 border border-slate-200 text-xs text-slate-700">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <span className="font-bold text-slate-900">{loggedInAdmin.name}</span>
+                <span className="text-[10px] text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200 font-bold">
+                  {loggedInAdmin.role}
+                </span>
+              </div>
+            )}
+
             <button
               onClick={() => setShowLogsModal(true)}
               className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 border border-slate-200 text-xs font-bold transition shadow-sm"
@@ -695,6 +803,21 @@ export default function MerchantAdminPage() {
             >
               <Layers className="w-3.5 h-3.5" />
               <span>Bulk Fleet Generator</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setActiveTab('team_members');
+                fetchMembers();
+              }}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black transition ${
+                activeTab === 'team_members'
+                  ? 'bg-amber-400 text-slate-950 shadow-sm glow-yellow'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Users className="w-3.5 h-3.5" />
+              <span>Team Members & Access ({members.length})</span>
             </button>
           </div>
 
@@ -1156,6 +1279,221 @@ export default function MerchantAdminPage() {
                 </button>
               </div>
             </form>
+          </div>
+        )}
+
+        {/* TAB 5: TEAM & STAFF MEMBERS ACCESS */}
+        {activeTab === 'team_members' && (
+          <div className="space-y-6 animate-fadeIn">
+            {/* Header Banner */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-black uppercase tracking-wider mb-2">
+                  <Shield className="w-3.5 h-3.5 text-amber-600" />
+                  Administrative Access Control
+                </div>
+                <h2 className="text-2xl sm:text-3xl font-black text-slate-950">
+                  Team Members & Staff Logins
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
+                  Add staff members who can log into the Store Console to print stickers and manage order fulfillment.
+                </p>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-700">
+                <span className="text-slate-500">Super Admin Default: </span>
+                <code className="font-mono font-bold text-slate-900">admin@parkping.com</code>
+              </div>
+            </div>
+
+            {/* Success Notification */}
+            {memberSuccessMsg && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold flex items-center gap-2 animate-fadeIn shadow-sm">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>{memberSuccessMsg}</span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Left Column: Add Team Member Form */}
+              <div className="lg:col-span-5 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-5">
+                <div className="flex items-center gap-2 text-slate-950 font-black text-lg border-b border-slate-100 pb-3">
+                  <UserPlus className="w-5 h-5 text-amber-500" />
+                  <span>Add New Team Member</span>
+                </div>
+
+                <form onSubmit={handleAddMember} className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Vikram Sharma"
+                      value={newMemberName}
+                      onChange={(e) => setNewMemberName(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none transition"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Staff Email Address (Login ID) *
+                    </label>
+                    <div className="relative">
+                      <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <input
+                        type="email"
+                        required
+                        placeholder="e.g. vikram@parkping.com"
+                        value={newMemberEmail}
+                        onChange={(e) => setNewMemberEmail(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none transition"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Initial Password *
+                    </label>
+                    <div className="relative">
+                      <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                      <input
+                        type="password"
+                        required
+                        placeholder="••••••••"
+                        value={newMemberPassword}
+                        onChange={(e) => setNewMemberPassword(e.target.value)}
+                        className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-xl pl-10 pr-3.5 py-2.5 text-xs font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none transition"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                      Designated Role & Permission
+                    </label>
+                    <select
+                      value={newMemberRole}
+                      onChange={(e) => setNewMemberRole(e.target.value as any)}
+                      className="w-full bg-slate-50 border border-slate-300 text-slate-800 rounded-xl px-3.5 py-2.5 text-xs font-bold focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="Super Admin">Super Admin (Full Access & Team Management)</option>
+                      <option value="Fulfillment Manager">Fulfillment Manager (Orders & Dispatch)</option>
+                      <option value="Print Operator">Print Operator (Sticker Batch Printing)</option>
+                      <option value="Support Agent">Support Agent (Scan Logs & Customer Support)</option>
+                    </select>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={addingMember}
+                    className="w-full py-3.5 px-6 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs glow-yellow transition flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50 active:scale-95"
+                  >
+                    {addingMember ? (
+                      <div className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <UserPlus className="w-4 h-4" />
+                        <span>Create Staff Member Access</span>
+                      </>
+                    )}
+                  </button>
+                </form>
+              </div>
+
+              {/* Right Column: Active Staff Accounts List */}
+              <div className="lg:col-span-7 bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-xl space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2 font-black text-lg text-slate-950">
+                    <Users className="w-5 h-5 text-amber-500" />
+                    <span>Active Team & Admin Accounts ({members.length})</span>
+                  </div>
+
+                  <button
+                    onClick={fetchMembers}
+                    disabled={loadingMembers}
+                    className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600"
+                    title="Refresh members"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${loadingMembers ? 'animate-spin' : ''}`} />
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {members.map((m) => (
+                    <div
+                      key={m.id}
+                      className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm hover:border-slate-300 transition"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="w-10 h-10 rounded-2xl bg-amber-100 text-amber-800 font-black text-sm flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                          {m.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-sm text-slate-950">{m.name}</span>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${
+                                m.role === 'Super Admin'
+                                  ? 'bg-amber-100 text-amber-900 border-amber-300'
+                                  : m.role === 'Fulfillment Manager'
+                                  ? 'bg-blue-100 text-blue-900 border-blue-300'
+                                  : m.role === 'Print Operator'
+                                  ? 'bg-emerald-100 text-emerald-900 border-emerald-300'
+                                  : 'bg-purple-100 text-purple-900 border-purple-300'
+                              }`}
+                            >
+                              {m.role}
+                            </span>
+                            {m.isSuperAdmin && (
+                              <span className="text-[9px] font-black uppercase px-1.5 py-0.5 rounded bg-slate-900 text-white">
+                                Master Super Admin
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs font-mono text-slate-600 mt-0.5">
+                            {m.email}
+                          </div>
+                          <div className="text-[10px] text-slate-400 mt-0.5">
+                            Added on {new Date(m.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="self-end sm:self-auto">
+                        {m.isSuperAdmin ? (
+                          <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200">
+                            Protected Super Admin
+                          </span>
+                        ) : (
+                          <button
+                            onClick={() => handleDeleteMember(m.id, m.name)}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition active:scale-95"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Revoke Access</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs text-slate-700 leading-relaxed mt-4">
+                  <div className="font-bold text-slate-900 flex items-center gap-1 mb-1">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                    How Staff Logins Work:
+                  </div>
+                  Any team member you add can immediately navigate to{' '}
+                  <strong className="font-mono text-slate-900">/admin</strong> or{' '}
+                  <strong className="font-mono text-slate-900">https://parkping-xi.vercel.app/admin</strong>, 
+                  enter their email and password, and fulfill car sticker orders without needing developer access.
+                </div>
+              </div>
+            </div>
           </div>
         )}
       </main>
