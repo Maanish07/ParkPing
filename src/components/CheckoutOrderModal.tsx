@@ -584,7 +584,7 @@ export default function CheckoutOrderModal({
               onClick={onClose}
               className="py-3 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs glow-yellow transition"
             >
-              Go to My Garage
+              Done · Back to Home
             </button>
           </div>
         )}

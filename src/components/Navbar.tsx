@@ -1,30 +1,22 @@
 'use client';
 
 import React from 'react';
-import { Sparkles, Printer, Clock, Layers, Car, ShieldCheck, QrCode } from 'lucide-react';
+import { Sparkles, ShoppingCart, ShieldCheck, Car, Eye, HelpCircle } from 'lucide-react';
 
 interface NavbarProps {
-  totalVehicles: number;
-  activeCount: number;
-  totalPings: number;
-  onOpenBulkPrint: () => void;
-  onOpenLogs: () => void;
-  onScrollToGenerator: () => void;
+  onOpenCheckout: () => void;
   onScrollToHowItWorks?: () => void;
-  onScrollToGarage?: () => void;
+  onScrollToOrder?: () => void;
   onScrollToSimulator?: () => void;
+  onScrollToFaq?: () => void;
 }
 
 export default function Navbar({
-  totalVehicles,
-  activeCount,
-  totalPings,
-  onOpenBulkPrint,
-  onOpenLogs,
-  onScrollToGenerator,
+  onOpenCheckout,
   onScrollToHowItWorks,
-  onScrollToGarage,
+  onScrollToOrder,
   onScrollToSimulator,
+  onScrollToFaq,
 }: NavbarProps) {
   return (
     <nav className="sticky top-0 z-50 w-full glass-panel border-b border-white/10 px-4 sm:px-8 py-3.5 no-print">
@@ -43,12 +35,12 @@ export default function Navbar({
             </div>
             <div className="text-xs text-slate-400 flex items-center gap-1.5 font-medium hidden sm:flex">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Zero Number Leak • Masked Call & WhatsApp</span>
+              <span>Zero Number Leak • Masked Calls & WhatsApp</span>
             </div>
           </div>
         </div>
 
-        {/* Center Navigation Links */}
+        {/* Navigation Links */}
         <div className="hidden md:flex items-center gap-6 text-xs font-bold text-slate-300">
           <button
             onClick={onScrollToHowItWorks}
@@ -63,37 +55,27 @@ export default function Navbar({
             Windshield Preview
           </button>
           <button
-            onClick={onScrollToGarage}
-            className="hover:text-yellow-400 transition flex items-center gap-1.5"
+            onClick={onScrollToOrder}
+            className="hover:text-yellow-400 transition"
           >
-            <Car className="w-3.5 h-3.5 text-yellow-400" />
-            <span>My Garage ({totalVehicles})</span>
+            Get the Tag
           </button>
           <button
-            onClick={onOpenLogs}
-            className="hover:text-yellow-400 transition flex items-center gap-1"
+            onClick={onScrollToFaq}
+            className="hover:text-yellow-400 transition"
           >
-            <Clock className="w-3.5 h-3.5 text-slate-400" />
-            <span>Activity Logs</span>
+            FAQs
           </button>
         </div>
 
-        {/* Right Action Buttons */}
-        <div className="flex items-center gap-2.5">
+        {/* Right CTA Button */}
+        <div className="flex items-center gap-3">
           <button
-            onClick={onOpenBulkPrint}
-            className="hidden sm:flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 text-xs font-bold transition shadow"
+            onClick={onOpenCheckout}
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs glow-yellow transition active:scale-95 shadow-md"
           >
-            <Printer className="w-3.5 h-3.5 text-cyan-400" />
-            <span>Batch Print</span>
-          </button>
-
-          <button
-            onClick={onScrollToGenerator}
-            className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-xs glow-yellow transition active:scale-95"
-          >
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>+ Create Free eTag</span>
+            <ShoppingCart className="w-4 h-4" />
+            <span>Buy Tag · ₹399</span>
           </button>
         </div>
       </div>

@@ -1,125 +1,74 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import TagGenerator from '@/components/TagGenerator';
-import TagCard from '@/components/TagCard';
 import PrintableBadge from '@/components/PrintableBadge';
-import BulkPrintModal from '@/components/BulkPrintModal';
-import ActivityLogsModal from '@/components/ActivityLogsModal';
 import WindshieldSimulator from '@/components/WindshieldSimulator';
 import PasserbyMobileMockup from '@/components/PasserbyMobileMockup';
 import StickerShowcase from '@/components/StickerShowcase';
 import CheckoutOrderModal from '@/components/CheckoutOrderModal';
-import { VehicleTag, BadgeTheme } from '@/lib/types';
+import { VehicleTag } from '@/lib/types';
 import { 
-  Car, 
   ShieldCheck, 
   PhoneCall, 
-  QrCode, 
   Sparkles, 
-  Printer, 
-  Search, 
-  Layers, 
-  CheckCircle2, 
+  Check, 
   ArrowRight, 
   Lock, 
   Zap, 
-  Clock, 
   HelpCircle, 
-  Smartphone, 
-  Award, 
-  X,
-  Star,
-  Check,
-  Phone,
-  MessageSquare,
-  ShieldAlert,
-  ShoppingCart,
-  Truck
+  Star, 
+  ShoppingCart, 
+  Truck,
+  Droplets,
+  Sun,
+  Award
 } from 'lucide-react';
 
 export default function HomePage() {
-  const [tags, setTags] = useState<VehicleTag[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'dnd' | 'inactive'>('all');
-  
-  // Modals
   const [showCheckout, setShowCheckout] = useState(false);
-  const [selectedPrintTag, setSelectedPrintTag] = useState<VehicleTag | null>(null);
-  const [showBulkPrint, setShowBulkPrint] = useState(false);
-  const [showLogs, setShowLogs] = useState(false);
+  const [checkoutInitialPlate, setCheckoutInitialPlate] = useState('');
 
   // Section Refs
-  const generatorRef = useRef<HTMLDivElement | null>(null);
-  const garageRef = useRef<HTMLDivElement | null>(null);
+  const orderRef = useRef<HTMLDivElement | null>(null);
   const howItWorksRef = useRef<HTMLDivElement | null>(null);
   const simulatorRef = useRef<HTMLDivElement | null>(null);
-
-  const fetchTags = async () => {
-    try {
-      const res = await fetch('/api/tags');
-      const data = await res.json();
-      if (data.success && data.tags) {
-        setTags(data.tags);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchTags();
-  }, []);
-
-  const handleTagsCreated = (newTags: VehicleTag[]) => {
-    setTags((prev) => [...newTags, ...prev.filter((t) => !newTags.some((nt) => nt.id === t.id))]);
-    garageRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  const handleTagUpdated = (updated: VehicleTag) => {
-    setTags((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-    if (selectedPrintTag && selectedPrintTag.id === updated.id) {
-      setSelectedPrintTag(updated);
-    }
-  };
-
-  const handleTagDeleted = (tagId: string) => {
-    setTags((prev) => prev.filter((t) => t.id !== tagId));
-  };
+  const faqRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
     ref.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const filteredTags = tags.filter((t) => {
-    const matchesSearch =
-      t.vehicleNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      t.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (t.vehicleModel && t.vehicleModel.toLowerCase().includes(searchQuery.toLowerCase()));
+  const handleStartCheckout = (plate?: string) => {
+    if (plate) setCheckoutInitialPlate(plate);
+    setShowCheckout(true);
+  };
 
-    const matchesStatus = statusFilter === 'all' || t.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
-
-  const activeCount = tags.filter((t) => t.status === 'active').length;
+  // Demo tag for windshield preview
+  const demoTag: VehicleTag = {
+    id: 'PP-48291',
+    vehicleNumber: 'DL 01 AB 1234',
+    phoneNumber: '+91 98765 43210',
+    ownerName: 'Rahul Sharma',
+    vehicleModel: 'Hyundai Creta (White)',
+    vehicleType: 'suv',
+    status: 'active',
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    scanCount: 14,
+    badgeTheme: 'amber_neon',
+  };
 
   return (
     <div className="min-h-screen bg-[#06090f] text-slate-100 flex flex-col justify-between selection:bg-yellow-400 selection:text-black">
       {/* Navbar */}
       <Navbar
-        totalVehicles={tags.length}
-        activeCount={activeCount}
-        totalPings={tags.reduce((acc, t) => acc + (t.scanCount || 0), 0)}
-        onOpenBulkPrint={() => setShowBulkPrint(true)}
-        onOpenLogs={() => setShowLogs(true)}
-        onScrollToGenerator={() => setShowCheckout(true)}
+        onOpenCheckout={() => handleStartCheckout()}
         onScrollToHowItWorks={() => scrollToSection(howItWorksRef)}
-        onScrollToGarage={() => scrollToSection(garageRef)}
+        onScrollToOrder={() => scrollToSection(orderRef)}
         onScrollToSimulator={() => scrollToSection(simulatorRef)}
+        onScrollToFaq={() => scrollToSection(faqRef)}
       />
 
       {/* Main Container */}
@@ -143,14 +92,14 @@ export default function HomePage() {
 
             {/* Subhead */}
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl">
-              Stick the ParkPing smart tag on your car or bike. If you&apos;re parked in a tight spot, blocking someone, or lights are left on, people scan it with any phone camera and reach you on a <strong>masked call or WhatsApp</strong>. Your personal mobile number stays completely private.
+              Stick the ParkPing smart tag on your car or bike. If there&apos;s ever a problem, your car is blocking someone, or lights are left on, people scan it with any phone camera and reach you on a <strong>masked call or WhatsApp</strong>. Your personal mobile number stays completely private.
             </p>
 
             {/* Pricing & Buy CTA */}
             <div className="flex flex-wrap items-center gap-4 pt-2">
               <button
-                onClick={() => setShowCheckout(true)}
-                className="py-4 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm tracking-wide glow-yellow transition transform active:scale-95 flex items-center gap-2.5"
+                onClick={() => handleStartCheckout()}
+                className="py-4 px-8 rounded-2xl bg-yellow-400 hover:bg-yellow-300 text-black font-black text-sm tracking-wide glow-yellow transition transform active:scale-95 flex items-center gap-2.5 shadow-xl"
               >
                 <ShoppingCart className="w-4 h-4" />
                 Buy Smart Tag · ₹399
@@ -189,14 +138,12 @@ export default function HomePage() {
           <div className="flex flex-col items-center justify-center relative">
             <div className="absolute -inset-8 bg-gradient-to-r from-yellow-400/20 to-cyan-500/20 rounded-full blur-3xl opacity-60 pointer-events-none" />
             <div className="relative transform lg:rotate-1 hover:rotate-0 transition duration-300">
-              {tags.length > 0 && (
-                <PrintableBadge tag={tags[0]} />
-              )}
+              <PrintableBadge tag={demoTag} compact />
             </div>
           </div>
         </section>
 
-        {/* THREE STEPS SECTION */}
+        {/* THREE STEPS: HOW IT WORKS */}
         <section ref={howItWorksRef} className="scroll-mt-24 pt-4">
           <div className="text-center max-w-2xl mx-auto mb-12">
             <p className="text-xs font-black uppercase tracking-widest text-yellow-400 mb-2">
@@ -220,7 +167,7 @@ export default function HomePage() {
               <div className="text-4xl font-black font-mono text-yellow-400/40 mb-4">02</div>
               <h3 className="text-lg font-black text-white mb-2">They reach out</h3>
               <p className="text-xs text-slate-300 leading-relaxed">
-                They send a 1-click alert (e.g. &ldquo;Car Blocking Way&rdquo;) or place a call, right from the browser.
+                They send a 1-click WhatsApp alert (e.g. &ldquo;Car Blocking Way&rdquo;) or place a call, right from the browser.
               </p>
             </div>
 
@@ -234,7 +181,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* CORE PILLARS GRID */}
+        {/* CORE FEATURE PILLARS */}
         <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="glass-card rounded-3xl p-6 border border-white/10 glass-card-hover">
             <div className="w-12 h-12 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 text-yellow-400 flex items-center justify-center font-bold mb-4 shadow">
@@ -260,111 +207,26 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 flex items-center justify-center font-bold mb-4 shadow">
               <Zap className="w-6 h-6" />
             </div>
-            <h3 className="text-base font-bold text-white mb-1.5">Auto Vahan Details & eTag</h3>
+            <h3 className="text-base font-bold text-white mb-1.5">Auto Vahan Details & Delivery</h3>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Automatic vehicle details lookup from RTO. Get instant printable digital eTag + 3M waterproof sticker delivered.
+              Automatic vehicle details lookup from RTO. Get instant digital eTag + 3M waterproof sticker delivered.
             </p>
           </div>
         </section>
 
+        {/* ORDER TAG SECTION WITH LIVE VAHAN AUTO-FETCH */}
+        <section ref={orderRef} className="scroll-mt-24">
+          <TagGenerator onStartCheckout={(plate) => handleStartCheckout(plate)} />
+        </section>
+
         {/* INTERACTIVE WINDSHIELD SIMULATOR */}
         <section ref={simulatorRef} className="scroll-mt-24">
-          <WindshieldSimulator selectedTag={tags[0]} />
+          <WindshieldSimulator selectedTag={demoTag} />
         </section>
 
         {/* LIVE SMARTPHONE SCAN DEMO */}
         <section className="scroll-mt-24">
-          {tags.length > 0 && (
-            <PasserbyMobileMockup tag={tags[0]} />
-          )}
-        </section>
-
-        {/* INSTANT ETAG GENERATOR & ORDER CTA */}
-        <section ref={generatorRef} className="scroll-mt-24">
-          <TagGenerator onTagsCreated={handleTagsCreated} />
-        </section>
-
-        {/* MY GARAGE / REGISTERED VEHICLES */}
-        <section ref={garageRef} className="space-y-6 scroll-mt-24">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-2xl sm:text-3xl font-black text-white">
-                  My Registered Vehicles ({filteredTags.length})
-                </h2>
-                <span className="text-xs px-2.5 py-0.5 rounded-full bg-slate-800 text-yellow-400 font-mono font-bold">
-                  {tags.length} Total
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Manage your active tags, change phone numbers on the fly, or print replacement stickers.
-              </p>
-            </div>
-
-            {/* Filter & Search Bar */}
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="flex items-center p-1 rounded-xl bg-slate-900 border border-slate-800">
-                {(['all', 'active', 'dnd', 'inactive'] as const).map((st) => (
-                  <button
-                    key={st}
-                    onClick={() => setStatusFilter(st)}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition capitalize ${
-                      statusFilter === st
-                        ? 'bg-yellow-400 text-black shadow'
-                        : 'text-slate-400 hover:text-white'
-                    }`}
-                  >
-                    {st}
-                  </button>
-                ))}
-              </div>
-
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
-                <input
-                  type="text"
-                  placeholder="Search plate / model..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-yellow-400 w-48 sm:w-60"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Grid */}
-          {loading ? (
-            <div className="py-20 text-center text-slate-500">
-              <div className="w-8 h-8 border-2 border-yellow-400 border-t-transparent rounded-full animate-spin mx-auto mb-3" />
-              Loading vehicle garage...
-            </div>
-          ) : filteredTags.length === 0 ? (
-            <div className="py-16 text-center glass-panel rounded-3xl border border-white/10 p-8">
-              <Car className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-              <div className="text-base font-bold text-white">No Vehicles Found</div>
-              <p className="text-xs text-slate-400 max-w-sm mx-auto mt-1 mb-4">
-                No car scanner matched your filter. Order a smart tag to add a car to your garage.
-              </p>
-              <button
-                onClick={() => setShowCheckout(true)}
-                className="px-4 py-2 rounded-xl bg-yellow-400 text-black font-black text-xs glow-yellow"
-              >
-                + Buy Smart Tag
-              </button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTags.map((tag) => (
-                <TagCard
-                  key={tag.id}
-                  tag={tag}
-                  onTagUpdated={handleTagUpdated}
-                  onTagDeleted={handleTagDeleted}
-                  onSelectPrint={(t) => setSelectedPrintTag(t)}
-                />
-              ))}
-            </div>
-          )}
+          <PasserbyMobileMockup tag={demoTag} />
         </section>
 
         {/* STICKER AUTOMOTIVE QUALITY */}
@@ -373,10 +235,10 @@ export default function HomePage() {
         </section>
 
         {/* FREQUENTLY ASKED QUESTIONS */}
-        <section className="glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 space-y-6">
+        <section ref={faqRef} className="glass-panel rounded-3xl p-6 sm:p-10 border border-white/10 space-y-6 scroll-mt-24">
           <div className="text-center max-w-2xl mx-auto">
             <h3 className="text-2xl sm:text-3xl font-black text-white">Frequently Asked Questions</h3>
-            <p className="text-xs text-slate-400 mt-1">Everything you need to know about putting ParkPing on your car.</p>
+            <p className="text-xs text-slate-400 mt-1">Everything you need to know about ordering ParkPing for your car.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
@@ -396,7 +258,7 @@ export default function HomePage() {
                 What if I change my phone number or sell my car?
               </h4>
               <p className="text-xs text-slate-400 leading-relaxed">
-                You never need to replace the physical QR sticker! Simply login to your ParkPing dashboard and update the linked phone number or transfer the tag to a new owner in 1 click.
+                You never need to replace the physical QR sticker! Simply update your linked phone number in the portal or transfer the tag to a new owner in 1 click.
               </p>
             </div>
 
@@ -440,14 +302,14 @@ export default function HomePage() {
             <button onClick={() => scrollToSection(howItWorksRef)} className="hover:text-yellow-400">
               How it works
             </button>
-            <button onClick={() => setShowCheckout(true)} className="hover:text-yellow-400">
+            <button onClick={() => handleStartCheckout()} className="hover:text-yellow-400">
               Buy Smart Tag
             </button>
-            <button onClick={() => scrollToSection(garageRef)} className="hover:text-yellow-400">
-              My Garage
+            <button onClick={() => scrollToSection(simulatorRef)} className="hover:text-yellow-400">
+              Windshield Preview
             </button>
-            <button onClick={() => setShowLogs(true)} className="hover:text-yellow-400">
-              Activity Logs
+            <button onClick={() => scrollToSection(faqRef)} className="hover:text-yellow-400">
+              FAQs
             </button>
           </div>
         </div>
@@ -456,45 +318,12 @@ export default function HomePage() {
       {/* CHECKOUT / ORDER MODAL */}
       {showCheckout && (
         <CheckoutOrderModal
+          initialVehicleNumber={checkoutInitialPlate}
           onClose={() => setShowCheckout(false)}
-          onOrderCompleted={handleTagsCreated}
+          onOrderCompleted={() => {
+            // Keep completed state
+          }}
         />
-      )}
-
-      {/* SINGLE PRINT MODAL */}
-      {selectedPrintTag && (
-        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 no-print">
-          <div className="rounded-3xl bg-slate-950 border border-slate-800 p-6 sm:p-8 flex flex-col items-center relative max-w-md w-full shadow-2xl">
-            <button
-              onClick={() => setSelectedPrintTag(null)}
-              className="absolute top-4 right-4 p-2 rounded-full bg-slate-900 text-slate-400 hover:text-white"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <div className="text-center mb-4">
-              <h3 className="text-lg font-bold text-white">Printable QR Badge</h3>
-              <p className="text-xs text-slate-400">
-                Vehicle: <strong className="text-yellow-400 font-mono">{selectedPrintTag.vehicleNumber}</strong>
-              </p>
-            </div>
-            <PrintableBadge
-              tag={selectedPrintTag}
-              onThemeChange={(newTheme: BadgeTheme) => {
-                handleTagUpdated({ ...selectedPrintTag, badgeTheme: newTheme });
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* BULK PRINT MODAL */}
-      {showBulkPrint && (
-        <BulkPrintModal tags={tags} onClose={() => setShowBulkPrint(false)} />
-      )}
-
-      {/* ACTIVITY LOGS MODAL */}
-      {showLogs && (
-        <ActivityLogsModal onClose={() => setShowLogs(false)} />
       )}
     </div>
   );
