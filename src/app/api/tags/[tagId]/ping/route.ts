@@ -4,10 +4,11 @@ import { maskPhoneNumber } from '@/lib/mask';
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { tagId: string } }
+  context: { params: Promise<{ tagId: string }> | { tagId: string } }
 ) {
   try {
-    const { tagId } = params;
+    const params = await context.params;
+    const tagId = params.tagId;
     const tag = getTagById(tagId);
 
     if (!tag) {

@@ -6,13 +6,12 @@ import { ShieldAlert, Car, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
 interface PageProps {
-  params: {
-    tagId: string;
-  };
+  params: Promise<{ tagId: string }> | { tagId: string };
 }
 
 export default async function PublicScanPage({ params }: PageProps) {
-  const { tagId } = params;
+  const resolvedParams = await params;
+  const tagId = resolvedParams.tagId;
   
   // Fetch from storage
   const tag = getTagById(tagId);

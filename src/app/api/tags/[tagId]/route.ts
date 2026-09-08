@@ -4,10 +4,11 @@ import { maskPhoneNumber } from '@/lib/mask';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { tagId: string } }
+  context: { params: Promise<{ tagId: string }> | { tagId: string } }
 ) {
   try {
-    const { tagId } = params;
+    const params = await context.params;
+    const tagId = params.tagId;
     const tag = getTagById(tagId);
 
     if (!tag) {
@@ -52,10 +53,11 @@ export async function GET(
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { tagId: string } }
+  context: { params: Promise<{ tagId: string }> | { tagId: string } }
 ) {
   try {
-    const { tagId } = params;
+    const params = await context.params;
+    const tagId = params.tagId;
     const updates = await req.json();
 
     const updated = updateTag(tagId, updates);
@@ -71,10 +73,11 @@ export async function PATCH(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: { tagId: string } }
+  context: { params: Promise<{ tagId: string }> | { tagId: string } }
 ) {
   try {
-    const { tagId } = params;
+    const params = await context.params;
+    const tagId = params.tagId;
     const deleted = deleteTag(tagId);
 
     if (!deleted) {
