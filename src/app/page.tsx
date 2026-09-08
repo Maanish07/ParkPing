@@ -104,7 +104,7 @@ export default function HomePage() {
             {/* Pricing & CTA Buttons */}
             <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
               <button
-                onClick={() => handleStartCheckout(1)}
+                onClick={() => scrollToSection(orderRef)}
                 className="w-full sm:w-auto py-4 px-8 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm tracking-wide glow-yellow transition transform active:scale-95 flex items-center justify-center gap-2.5 shadow-xl cursor-pointer"
               >
                 <ShoppingCart className="w-4 h-4" />
@@ -296,7 +296,7 @@ export default function HomePage() {
         </div>
 
         <button
-          onClick={() => handleStartCheckout(1)}
+          onClick={() => scrollToSection(orderRef)}
           className="flex-1 py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs glow-yellow transition flex items-center justify-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
         >
           <ShoppingCart className="w-4 h-4" />
@@ -313,7 +313,7 @@ export default function HomePage() {
               PP
             </div>
             <div>
-              <span className="text-slate-900 font-bold text-sm">ParkPing Sampark Tag</span>
+              <span className="text-slate-900 font-bold text-sm">ParkPing Smart Tag</span>
               <p className="text-[11px] text-slate-500">Privacy-First Smart Vehicle Contact Platform</p>
             </div>
           </div>
@@ -322,7 +322,7 @@ export default function HomePage() {
             <button onClick={() => scrollToSection(howItWorksRef)} className="hover:text-amber-600 transition cursor-pointer">
               How it works
             </button>
-            <button onClick={() => handleStartCheckout(1)} className="hover:text-amber-600 transition cursor-pointer">
+            <button onClick={() => scrollToSection(orderRef)} className="hover:text-amber-600 transition cursor-pointer">
               Buy Smart Tag
             </button>
             <button onClick={() => scrollToSection(orderRef)} className="hover:text-amber-600 transition cursor-pointer">

@@ -127,7 +127,7 @@ export default function PasserbyScanView({ tag }: PasserbyScanViewProps) {
               PARKPING
             </div>
             <div className="text-[10px] text-amber-700 uppercase tracking-widest font-extrabold">
-              VEHICLE SAMPARK PORTAL
+              VEHICLE CONTACT PORTAL
             </div>
           </div>
         </Link>

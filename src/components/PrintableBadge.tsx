@@ -198,7 +198,7 @@ export default function PrintableBadge({
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
               </div>
               <div className="text-[10px] text-yellow-400 uppercase tracking-widest font-extrabold">
-                SMART SAMPARK TAG
+                SMART VEHICLE TAG
               </div>
             </div>
           </div>
