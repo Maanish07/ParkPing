@@ -32,10 +32,21 @@ import {
   Zap,
   Truck,
   PackageCheck,
-  MapPin
+  MapPin,
+  Lock,
+  Mail,
+  Key,
+  LogOut
 } from 'lucide-react';
 
 export default function MerchantAdminPage() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [authChecking, setAuthChecking] = useState(true);
+  const [adminEmail, setAdminEmail] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [loggingIn, setLoggingIn] = useState(false);
+
   const [tags, setTags] = useState<VehicleTag[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -101,8 +112,45 @@ export default function MerchantAdminPage() {
   };
 
   useEffect(() => {
-    fetchTags();
+    const token = typeof window !== 'undefined' ? localStorage.getItem('parkping_admin_token') : null;
+    if (token) {
+      setIsAuthenticated(true);
+      fetchTags();
+    }
+    setAuthChecking(false);
   }, []);
+
+  const handleAdminLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setAuthError('');
+    setLoggingIn(true);
+
+    try {
+      const res = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: adminEmail, password: adminPassword }),
+      });
+      const data = await res.json();
+      if (data.success && data.token) {
+        localStorage.setItem('parkping_admin_token', data.token);
+        setIsAuthenticated(true);
+        fetchTags();
+      } else {
+        setAuthError(data.error || 'Invalid credentials');
+      }
+    } catch (err: any) {
+      setAuthError('Connection error. Please try again.');
+    } finally {
+      setLoggingIn(false);
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('parkping_admin_token');
+    setIsAuthenticated(false);
+    setAdminPassword('');
+  };
 
   // Update Fulfillment Status
   const handleUpdateFulfillment = async (tagId: string, newFulfillmentStatus: FulfillmentStatus) => {
@@ -321,6 +369,126 @@ export default function MerchantAdminPage() {
     setShowBulkPrintModal(true);
   };
 
+  if (authChecking) {
+    return (
+      <div className="min-h-screen bg-[#fafbfc] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // If Not Authenticated, Render Admin Login Screen
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-[#fafbfc] text-slate-900 flex flex-col justify-between selection:bg-amber-400 selection:text-black">
+        {/* Simple top header */}
+        <header className="w-full bg-white border-b border-slate-200 px-4 sm:px-8 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-black font-black text-sm flex items-center justify-center shadow-sm">
+                PP
+              </div>
+              <div className="font-black text-lg text-slate-950">PARKPING ADMIN</div>
+            </Link>
+            <Link
+              href="/"
+              className="text-xs font-bold text-slate-600 hover:text-slate-900 flex items-center gap-1"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" /> Back to Storefront
+            </Link>
+          </div>
+        </header>
+
+        {/* Centered Login Card */}
+        <div className="flex-1 flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-2xl space-y-6">
+            <div className="text-center space-y-2">
+              <div className="w-14 h-14 rounded-2xl bg-amber-50 border border-amber-200 text-amber-700 flex items-center justify-center mx-auto shadow-sm">
+                <Lock className="w-7 h-7" />
+              </div>
+              <h2 className="text-2xl font-black text-slate-950">Store Owner Console</h2>
+              <p className="text-xs text-slate-500">
+                Enter your administrative credentials to manage vehicle QR tag printing and orders.
+              </p>
+            </div>
+
+            {authError && (
+              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold text-center">
+                {authError}
+              </div>
+            )}
+
+            <form onSubmit={handleAdminLogin} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Admin Email ID</label>
+                <div className="relative">
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="email"
+                    required
+                    placeholder="admin@parkping.com"
+                    value={adminEmail}
+                    onChange={(e) => setAdminEmail(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-xl pl-10 pr-4 py-3 text-base sm:text-sm font-semibold text-slate-900 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Admin Password</label>
+                <div className="relative">
+                  <Key className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
+                  <input
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    className="w-full bg-slate-50 border border-slate-300 focus:border-amber-500 rounded-xl pl-10 pr-4 py-3 text-base sm:text-sm font-semibold text-slate-900 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loggingIn}
+                className="w-full py-3.5 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm glow-yellow transition flex items-center justify-center gap-2 shadow-md cursor-pointer disabled:opacity-50"
+              >
+                {loggingIn ? (
+                  <div className="w-5 h-5 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Lock className="w-4 h-4" />
+                    <span>Log In to Store Console</span>
+                  </>
+                )}
+              </button>
+
+              {/* Demo 1-Click Credentials */}
+              <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
+                <span className="text-slate-400">Default: <code className="text-slate-600 font-mono">admin@parkping.com</code></span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAdminEmail('admin@parkping.com');
+                    setAdminPassword('admin123');
+                  }}
+                  className="text-amber-700 hover:text-amber-800 font-bold"
+                >
+                  ⚡ Autofill Demo Credentials
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <footer className="text-center py-6 text-xs text-slate-400">
+          ParkPing Internal Fulfillment Portal • Secure Access Only
+        </footer>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#fafbfc] text-slate-900 flex flex-col justify-between selection:bg-amber-400 selection:text-black">
       {/* Top Merchant Navigation Header */}
@@ -359,11 +527,20 @@ export default function MerchantAdminPage() {
 
             <Link
               href="/"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-black transition active:scale-95 shadow-sm"
+              className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-black transition active:scale-95 shadow-sm"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Customer Storefront</span>
+              <span>Storefront</span>
             </Link>
+
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-200 hover:border-rose-200 text-xs font-bold transition active:scale-95 shadow-sm"
+              title="Log Out of Store Console"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
           </div>
         </div>
       </header>

@@ -4,10 +4,9 @@ import React, { useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import TagGenerator from '@/components/TagGenerator';
 import PrintableBadge from '@/components/PrintableBadge';
-import WindshieldSimulator from '@/components/WindshieldSimulator';
 import PasserbyMobileMockup from '@/components/PasserbyMobileMockup';
 import StickerShowcase from '@/components/StickerShowcase';
-import CheckoutOrderModal from '@/components/CheckoutOrderModal';
+import CheckoutOrderModal, { VehicleSlot } from '@/components/CheckoutOrderModal';
 import { VehicleTag } from '@/lib/types';
 import { 
   ShieldCheck, 
@@ -24,31 +23,32 @@ import {
   Droplets,
   Sun,
   Award,
-  ChevronRight,
-  Store
+  ChevronRight
 } from 'lucide-react';
-import Link from 'next/link';
 
 export default function HomePage() {
   const [showCheckout, setShowCheckout] = useState(false);
-  const [checkoutInitialPlate, setCheckoutInitialPlate] = useState('');
+  const [checkoutInitialCount, setCheckoutInitialCount] = useState<1 | 2 | 3>(1);
+  const [checkoutInitialSlots, setCheckoutInitialSlots] = useState<VehicleSlot[]>([]);
 
   // Section Refs
   const orderRef = useRef<HTMLDivElement | null>(null);
   const howItWorksRef = useRef<HTMLDivElement | null>(null);
-  const simulatorRef = useRef<HTMLDivElement | null>(null);
   const faqRef = useRef<HTMLDivElement | null>(null);
 
   const scrollToSection = (ref: React.RefObject<HTMLDivElement>) => {
     ref.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleStartCheckout = (plate?: string) => {
-    if (plate) setCheckoutInitialPlate(plate);
+  const handleStartCheckout = (count: 1 | 2 | 3 = 1, slots?: VehicleSlot[]) => {
+    setCheckoutInitialCount(count);
+    if (slots) {
+      setCheckoutInitialSlots(slots);
+    }
     setShowCheckout(true);
   };
 
-  // Demo tag for windshield preview
+  // Demo tag for hero preview
   const demoTag: VehicleTag = {
     id: 'PP-48291',
     vehicleNumber: 'DL 01 AB 1234',
@@ -67,24 +67,23 @@ export default function HomePage() {
     <div className="min-h-screen bg-[#fafbfc] text-slate-900 flex flex-col justify-between selection:bg-amber-400 selection:text-black">
       {/* Navbar */}
       <Navbar
-        onOpenCheckout={() => handleStartCheckout()}
+        onOpenCheckout={() => handleStartCheckout(1)}
         onScrollToHowItWorks={() => scrollToSection(howItWorksRef)}
         onScrollToOrder={() => scrollToSection(orderRef)}
-        onScrollToSimulator={() => scrollToSection(simulatorRef)}
         onScrollToFaq={() => scrollToSection(faqRef)}
       />
 
       {/* Main Container */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-8 sm:py-12 space-y-20 sm:space-y-28 flex-1 w-full">
+      <main className="max-w-7xl mx-auto px-4 sm:px-8 py-6 sm:py-12 space-y-16 sm:space-y-24 flex-1 w-full">
         {/* HERO SECTION */}
-        <section className="relative pt-4 sm:pt-8 pb-8 sm:pb-12 flex flex-col lg:flex-row lg:items-center justify-between gap-10 lg:gap-12">
+        <section className="relative pt-2 sm:pt-6 pb-6 sm:pb-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 lg:gap-12">
           {/* Subtle Ambient Light Glows */}
           <div className="absolute top-0 -left-20 w-96 h-96 bg-amber-200/40 rounded-full blur-3xl pointer-events-none -z-10" />
           <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-100/60 rounded-full blur-3xl pointer-events-none -z-10" />
 
-          <div className="lg:max-w-2xl space-y-5 sm:space-y-6">
+          <div className="lg:max-w-2xl space-y-4 sm:space-y-6">
             {/* Top Trust Badge */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-black uppercase tracking-wider shadow-sm">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-900 text-xs font-black uppercase tracking-wider shadow-sm">
               <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
               <span>Smart Vehicle Privacy Tag · Masked Calling & WhatsApp</span>
             </div>
@@ -103,10 +102,10 @@ export default function HomePage() {
             </p>
 
             {/* Pricing & CTA Buttons */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 pt-1">
               <button
-                onClick={() => handleStartCheckout()}
-                className="w-full sm:w-auto py-4 px-8 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm tracking-wide glow-yellow transition transform active:scale-95 flex items-center justify-center gap-2.5 shadow-xl"
+                onClick={() => handleStartCheckout(1)}
+                className="w-full sm:w-auto py-4 px-8 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-sm tracking-wide glow-yellow transition transform active:scale-95 flex items-center justify-center gap-2.5 shadow-xl cursor-pointer"
               >
                 <ShoppingCart className="w-4 h-4" />
                 <span>Buy Smart Tag · ₹399</span>
@@ -116,14 +115,14 @@ export default function HomePage() {
 
               <button
                 onClick={() => scrollToSection(howItWorksRef)}
-                className="w-full sm:w-auto py-4 px-6 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-sm border border-slate-300 transition flex items-center justify-center gap-2 shadow-sm"
+                className="w-full sm:w-auto py-4 px-6 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-extrabold text-sm border border-slate-300 transition flex items-center justify-center gap-2 shadow-sm cursor-pointer"
               >
                 See How It Works
               </button>
             </div>
 
             {/* Trust Line */}
-            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 pt-3 border-t border-slate-200">
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs text-slate-600 pt-3 border-t border-slate-200">
               <div className="flex items-center gap-1.5 text-slate-700 font-semibold">
                 <Check className="w-4 h-4 text-emerald-600 font-bold" />
                 <span>Zero Number Leak</span>
@@ -142,7 +141,7 @@ export default function HomePage() {
           </div>
 
           {/* Right Floating Badge Visual */}
-          <div className="flex flex-col items-center justify-center relative mt-4 lg:mt-0">
+          <div className="flex flex-col items-center justify-center relative mt-2 lg:mt-0">
             <div className="absolute -inset-6 bg-gradient-to-r from-amber-300/30 to-blue-200/30 rounded-3xl blur-2xl opacity-70 pointer-events-none" />
             <div className="relative transform hover:scale-[1.02] transition duration-300">
               <PrintableBadge tag={demoTag} compact />
@@ -152,7 +151,7 @@ export default function HomePage() {
 
         {/* THREE STEPS: HOW IT WORKS */}
         <section ref={howItWorksRef} className="scroll-mt-24 pt-2">
-          <div className="text-center max-w-2xl mx-auto mb-10 sm:mb-14">
+          <div className="text-center max-w-2xl mx-auto mb-8 sm:mb-12">
             <p className="text-xs font-black uppercase tracking-widest text-amber-600 mb-2">
               HOW IT WORKS
             </p>
@@ -161,7 +160,7 @@ export default function HomePage() {
             </h2>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-8">
             <div className="glass-card rounded-3xl p-6 sm:p-8 border border-slate-200/80 glass-card-hover relative bg-white">
               <div className="text-4xl font-black font-mono text-amber-500/30 mb-3">01</div>
               <h3 className="text-lg font-black text-slate-900 mb-1.5">Scan the tag</h3>
@@ -189,7 +188,7 @@ export default function HomePage() {
         </section>
 
         {/* CORE FEATURE PILLARS */}
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <section className="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
           <div className="glass-card rounded-3xl p-6 border border-slate-200/80 glass-card-hover bg-white">
             <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center font-bold mb-4 shadow-sm">
               <Lock className="w-6 h-6" />
@@ -221,14 +220,9 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* ORDER TAG SECTION WITH LIVE VAHAN AUTO-FETCH */}
+        {/* ORDER TAG SECTION WITH MULTI-VEHICLE & LIVE VAHAN AUTO-FETCH */}
         <section ref={orderRef} className="scroll-mt-24">
-          <TagGenerator onStartCheckout={(plate) => handleStartCheckout(plate)} />
-        </section>
-
-        {/* INTERACTIVE WINDSHIELD SIMULATOR */}
-        <section ref={simulatorRef} className="scroll-mt-24">
-          <WindshieldSimulator selectedTag={demoTag} />
+          <TagGenerator onStartCheckout={(count, slots) => handleStartCheckout(count, slots)} />
         </section>
 
         {/* LIVE SMARTPHONE SCAN DEMO */}
@@ -245,7 +239,7 @@ export default function HomePage() {
         <section ref={faqRef} className="glass-panel rounded-3xl p-6 sm:p-10 border border-slate-200/90 space-y-6 scroll-mt-24 bg-white">
           <div className="text-center max-w-2xl mx-auto">
             <h3 className="text-2xl sm:text-3xl font-black text-slate-950">Frequently Asked Questions</h3>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">Everything you need to know about ordering ParkPing for your car.</p>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1 font-medium">Everything you need to know about ordering ParkPing for your car.</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 pt-4">
@@ -302,8 +296,8 @@ export default function HomePage() {
         </div>
 
         <button
-          onClick={() => handleStartCheckout()}
-          className="flex-1 py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs glow-yellow transition flex items-center justify-center gap-1.5 shadow-md active:scale-95"
+          onClick={() => handleStartCheckout(1)}
+          className="flex-1 py-3 px-4 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs glow-yellow transition flex items-center justify-center gap-1.5 shadow-md active:scale-95 cursor-pointer"
         >
           <ShoppingCart className="w-4 h-4" />
           <span>Buy Smart Tag</span>
@@ -312,7 +306,7 @@ export default function HomePage() {
       </div>
 
       {/* FOOTER */}
-      <footer className="w-full border-t border-slate-200 py-10 px-4 sm:px-8 mt-20 no-print bg-white pb-20 sm:pb-10">
+      <footer className="w-full border-t border-slate-200 py-8 px-4 sm:px-8 mt-16 no-print bg-white pb-20 sm:pb-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-600">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-xl bg-amber-400 text-black font-black text-sm flex items-center justify-center shadow-sm">
@@ -325,22 +319,18 @@ export default function HomePage() {
           </div>
 
           <div className="flex flex-wrap items-center gap-6 text-xs text-slate-600 font-semibold">
-            <button onClick={() => scrollToSection(howItWorksRef)} className="hover:text-amber-600">
+            <button onClick={() => scrollToSection(howItWorksRef)} className="hover:text-amber-600 transition cursor-pointer">
               How it works
             </button>
-            <button onClick={() => handleStartCheckout()} className="hover:text-amber-600">
+            <button onClick={() => handleStartCheckout(1)} className="hover:text-amber-600 transition cursor-pointer">
               Buy Smart Tag
             </button>
-            <button onClick={() => scrollToSection(simulatorRef)} className="hover:text-amber-600">
-              Windshield Preview
+            <button onClick={() => scrollToSection(orderRef)} className="hover:text-amber-600 transition cursor-pointer">
+              Order Online
             </button>
-            <button onClick={() => scrollToSection(faqRef)} className="hover:text-amber-600">
+            <button onClick={() => scrollToSection(faqRef)} className="hover:text-amber-600 transition cursor-pointer">
               FAQs
             </button>
-            <Link href="/admin" className="text-amber-600 hover:text-amber-700 font-bold flex items-center gap-1">
-              <Store className="w-3.5 h-3.5" />
-              <span>Store Owner Portal →</span>
-            </Link>
           </div>
         </div>
       </footer>
@@ -348,7 +338,8 @@ export default function HomePage() {
       {/* CHECKOUT / ORDER MODAL */}
       {showCheckout && (
         <CheckoutOrderModal
-          initialVehicleNumber={checkoutInitialPlate}
+          initialTagCount={checkoutInitialCount}
+          initialSlots={checkoutInitialSlots}
           onClose={() => setShowCheckout(false)}
           onOrderCompleted={() => {
             // Completed

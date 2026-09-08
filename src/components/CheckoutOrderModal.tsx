@@ -17,42 +17,55 @@ import {
   ChevronRight
 } from 'lucide-react';
 
-interface CheckoutOrderModalProps {
-  onClose: () => void;
-  onOrderCompleted: (createdTags: VehicleTag[]) => void;
-  initialVehicleNumber?: string;
-}
-
-interface VehicleSlot {
+export interface VehicleSlot {
   vehicleNumber: string;
   mobileNumber: string;
   details?: VehicleDetails;
   loadingDetails?: boolean;
 }
 
+interface CheckoutOrderModalProps {
+  onClose: () => void;
+  onOrderCompleted: (createdTags: VehicleTag[]) => void;
+  initialVehicleNumber?: string;
+  initialTagCount?: 1 | 2 | 3;
+  initialSlots?: VehicleSlot[];
+}
+
 export default function CheckoutOrderModal({
   onClose,
   onOrderCompleted,
   initialVehicleNumber = '',
+  initialTagCount = 1,
+  initialSlots,
 }: CheckoutOrderModalProps) {
   const [step, setStep] = useState<1 | 2 | 3>(1);
-  const [tagCount, setTagCount] = useState<1 | 2 | 3>(1);
+  const [tagCount, setTagCount] = useState<1 | 2 | 3>(initialTagCount);
   
   // Slots for 1, 2, or 3 vehicles
-  const [slots, setSlots] = useState<VehicleSlot[]>([
-    {
-      vehicleNumber: initialVehicleNumber ? formatVehicleNumber(initialVehicleNumber) : '',
-      mobileNumber: '',
-    },
-    {
-      vehicleNumber: '',
-      mobileNumber: '',
-    },
-    {
-      vehicleNumber: '',
-      mobileNumber: '',
-    },
-  ]);
+  const [slots, setSlots] = useState<VehicleSlot[]>(() => {
+    if (initialSlots && initialSlots.length > 0) {
+      const merged = [...initialSlots];
+      while (merged.length < 3) {
+        merged.push({ vehicleNumber: '', mobileNumber: '' });
+      }
+      return merged;
+    }
+    return [
+      {
+        vehicleNumber: initialVehicleNumber ? formatVehicleNumber(initialVehicleNumber) : '',
+        mobileNumber: '',
+      },
+      {
+        vehicleNumber: '',
+        mobileNumber: '',
+      },
+      {
+        vehicleNumber: '',
+        mobileNumber: '',
+      },
+    ];
+  });
 
   // Delivery Address
   const [address, setAddress] = useState({
