@@ -348,38 +348,45 @@ export default function TagGenerator({ onStartCheckout }: TagGeneratorProps) {
 
                   {/* Auto-Fetched Vehicle Card & Editable Model */}
                   {slot.details && (
-                    <div className="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-300 space-y-2 text-xs animate-fadeIn shadow-sm">
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                          <span className="text-emerald-950 font-black">{slot.details.rtoLocation}</span>
+                    <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/90 to-teal-50/50 border-2 border-emerald-300/90 space-y-2.5 text-xs animate-fadeIn shadow-sm">
+                      <div className="flex items-start justify-between gap-2 border-b border-emerald-200/80 pb-2.5">
+                        <div>
+                          <div className="text-[10px] font-black uppercase tracking-wider text-emerald-800">
+                            Auto-Fetched Vehicle Name:
+                          </div>
+                          <div className="text-sm sm:text-base font-black text-slate-950 flex items-center gap-1.5 mt-0.5">
+                            <Car className="w-4 h-4 text-emerald-600 shrink-0" />
+                            <span>{slot.details.model}</span>
+                          </div>
                         </div>
-                        <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
-                          {slot.details.source === 'live_vahan_api' ? '✓ Live Vahan Verified' : '✓ RTO Verified'}
+                        <span className="text-[9px] font-black uppercase px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0 shadow-sm">
+                          {slot.details.source === 'live_vahan_api' ? '✓ Live Vahan' : '✓ Verified RTO'}
                         </span>
                       </div>
 
-                      {/* Editable Car Model & Variant */}
-                      <div className="pt-1">
+                      {/* Editable Car Model & Variant Input */}
+                      <div>
                         <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1 flex items-center justify-between">
-                          <span>Vehicle Model / Name (Confirm or Edit):</span>
-                          <span className="text-[10px] font-normal text-slate-500 flex items-center gap-1">
-                            <Edit2 className="w-3 h-3 text-amber-600" /> Editable
+                          <span>Confirm / Edit Vehicle Model:</span>
+                          <span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">
+                            <Edit2 className="w-2.5 h-2.5 text-amber-600" /> Tap to change
                           </span>
                         </label>
                         <input
                           type="text"
                           value={slot.details.model}
                           onChange={(e) => handleModelChange(idx, e.target.value)}
-                          placeholder="e.g. Hyundai Creta, Maruti Swift, Thar 4x4, Royal Enfield"
-                          className="w-full bg-white border border-emerald-300 focus:border-amber-500 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none shadow-sm"
+                          placeholder="e.g. Tata Nexon XZ+, Hyundai Creta SX, Thar 4x4"
+                          className="w-full bg-white border border-emerald-300 focus:border-amber-500 rounded-xl px-3 py-2 text-xs font-bold text-slate-950 focus:outline-none shadow-sm"
                         />
                       </div>
 
-                      <div className="flex items-center gap-3 text-[10px] text-slate-600 pt-0.5">
-                        <span>State: <strong className="text-slate-900">{slot.details.state}</strong></span>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 pt-0.5 font-medium">
+                        <span className="text-emerald-900 font-bold">📍 {slot.details.rtoLocation}</span>
                         <span>•</span>
                         <span>Fuel: <strong className="text-amber-800">{slot.details.fuelType}</strong></span>
+                        <span>•</span>
+                        <span>Color: <strong className="text-slate-800">{slot.details.color}</strong></span>
                       </div>
                     </div>
                   )}

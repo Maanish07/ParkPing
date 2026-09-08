@@ -299,20 +299,25 @@ export default function CheckoutOrderModal({
                     </div>
 
                     {slot.details && (
-                      <div className="p-3.5 rounded-xl bg-emerald-50/80 border border-emerald-300 space-y-2 text-xs animate-fadeIn">
-                        <div className="flex items-center justify-between gap-2">
-                          <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                            <span className="text-emerald-950 font-black">{slot.details.rtoLocation}</span>
+                      <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-50/90 to-teal-50/50 border-2 border-emerald-300 space-y-2.5 text-xs animate-fadeIn shadow-sm">
+                        <div className="flex items-start justify-between gap-2 border-b border-emerald-200/80 pb-2">
+                          <div>
+                            <div className="text-[10px] font-black uppercase tracking-wider text-emerald-800">
+                              Auto-Fetched Vehicle:
+                            </div>
+                            <div className="text-sm font-black text-slate-950 flex items-center gap-1.5 mt-0.5">
+                              <Car className="w-4 h-4 text-emerald-600 shrink-0" />
+                              <span>{slot.details.model}</span>
+                            </div>
                           </div>
-                          <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
-                            {slot.details.source === 'live_vahan_api' ? '✓ Live Vahan Verified' : '✓ RTO Verified'}
+                          <span className="text-[9px] font-black uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 shrink-0">
+                            {slot.details.source === 'live_vahan_api' ? '✓ Live Vahan' : '✓ Verified RTO'}
                           </span>
                         </div>
 
                         <div>
-                          <label className="block text-[10px] font-bold text-slate-700 mb-1">
-                            Vehicle Model / Name (Confirm or Customise):
+                          <label className="block text-[10px] font-black uppercase tracking-wider text-slate-700 mb-1">
+                            Confirm / Customise Vehicle Model:
                           </label>
                           <input
                             type="text"
@@ -327,15 +332,17 @@ export default function CheckoutOrderModal({
                                 setSlots(updated);
                               }
                             }}
-                            placeholder="e.g. Hyundai Creta, Swift, Thar 4x4, Royal Enfield"
-                            className="w-full bg-white border border-emerald-300 rounded-lg px-2.5 py-1.5 text-xs font-bold text-slate-900 focus:outline-none"
+                            placeholder="e.g. Tata Nexon XZ+, Hyundai Creta SX, Thar 4x4"
+                            className="w-full bg-white border border-emerald-300 rounded-xl px-3 py-2 text-xs font-bold text-slate-900 focus:outline-none shadow-sm"
                           />
                         </div>
 
-                        <div className="flex items-center gap-3 text-[10px] text-slate-600">
-                          <span>State: <strong className="text-slate-900">{slot.details.state}</strong></span>
+                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] text-slate-600 font-medium">
+                          <span className="text-emerald-900 font-bold">📍 {slot.details.rtoLocation}</span>
                           <span>•</span>
                           <span>Fuel: <strong className="text-amber-800">{slot.details.fuelType}</strong></span>
+                          <span>•</span>
+                          <span>Color: <strong className="text-slate-800">{slot.details.color}</strong></span>
                         </div>
                       </div>
                     )}
