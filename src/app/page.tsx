@@ -284,6 +284,49 @@ export default function HomePage() {
             </div>
           </div>
         </section>
+
+        {/* WRONGLY PARKED VISUAL EXPLAINER & CTA BANNER */}
+        <section className="glass-panel rounded-3xl p-6 sm:p-10 border border-slate-200/90 bg-gradient-to-br from-white via-amber-50/40 to-blue-50/30 shadow-xl overflow-hidden relative">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            {/* Left Image Showcase */}
+            <div className="lg:col-span-7 flex justify-center items-center">
+              <div className="w-full max-w-xl bg-white rounded-3xl p-2 sm:p-4 border border-slate-200 shadow-md hover:shadow-xl transition group">
+                <img
+                  src="/images/wrongly-parked-banner.png"
+                  alt="Wrongly Parked Car Smart QR Notification - ParkPing"
+                  className="w-full h-auto object-contain rounded-2xl group-hover:scale-[1.01] transition"
+                  loading="lazy"
+                />
+              </div>
+            </div>
+
+            {/* Right Copy & CTA */}
+            <div className="lg:col-span-5 space-y-4 text-left">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 text-xs font-black uppercase tracking-wider">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                24/7 Vehicle Protection
+              </div>
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight leading-tight">
+                Wrongly Parked? <br />
+                <span className="text-amber-600">Connect in Seconds.</span>
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-medium">
+                If your car is ever blocking someone’s way or parked in an emergency zone, anyone can easily scan the QR code to call or message you through a 100% private, masked relay.
+              </p>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button
+                  onClick={() => scrollToSection(orderRef)}
+                  className="py-3.5 px-6 rounded-2xl bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs sm:text-sm glow-yellow transition flex items-center justify-center gap-2 shadow-md active:scale-95 cursor-pointer"
+                >
+                  <ShoppingCart className="w-4 h-4" />
+                  <span>Order Your Smart Tag · ₹399</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
       </main>
 
       {/* MOBILE STICKY BOTTOM ACTION BAR */}
@@ -306,31 +349,38 @@ export default function HomePage() {
       </div>
 
       {/* FOOTER */}
-      <footer className="w-full border-t border-slate-200 py-8 px-4 sm:px-8 mt-16 no-print bg-white pb-20 sm:pb-8">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-600">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-amber-400 text-black font-black text-sm flex items-center justify-center shadow-sm">
-              PP
+      <footer className="w-full border-t border-slate-200 py-10 px-4 sm:px-8 mt-16 no-print bg-white pb-24 sm:pb-10">
+        <div className="max-w-7xl mx-auto space-y-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-xs text-slate-600">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-amber-400 to-yellow-500 text-black font-black text-sm flex items-center justify-center shadow-sm shrink-0">
+                PP
+              </div>
+              <div>
+                <span className="text-slate-900 font-black text-base">ParkPing Smart Tag</span>
+                <p className="text-xs text-slate-500">Zero Number Leak • Masked Call & WhatsApp Relays Across India</p>
+              </div>
             </div>
-            <div>
-              <span className="text-slate-900 font-bold text-sm">ParkPing Smart Tag</span>
-              <p className="text-[11px] text-slate-500">Privacy-First Smart Vehicle Contact Platform</p>
+
+            <div className="flex flex-wrap items-center gap-6 text-xs text-slate-600 font-bold">
+              <button onClick={() => scrollToSection(howItWorksRef)} className="hover:text-amber-600 transition cursor-pointer">
+                How it works
+              </button>
+              <button onClick={() => scrollToSection(orderRef)} className="hover:text-amber-600 transition cursor-pointer">
+                Buy Smart Tag
+              </button>
+              <button onClick={() => scrollToSection(orderRef)} className="hover:text-amber-600 transition cursor-pointer">
+                Order Online
+              </button>
+              <button onClick={() => scrollToSection(faqRef)} className="hover:text-amber-600 transition cursor-pointer">
+                FAQs
+              </button>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-6 text-xs text-slate-600 font-semibold">
-            <button onClick={() => scrollToSection(howItWorksRef)} className="hover:text-amber-600 transition cursor-pointer">
-              How it works
-            </button>
-            <button onClick={() => scrollToSection(orderRef)} className="hover:text-amber-600 transition cursor-pointer">
-              Buy Smart Tag
-            </button>
-            <button onClick={() => scrollToSection(orderRef)} className="hover:text-amber-600 transition cursor-pointer">
-              Order Online
-            </button>
-            <button onClick={() => scrollToSection(faqRef)} className="hover:text-amber-600 transition cursor-pointer">
-              FAQs
-            </button>
+          <div className="pt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-[11px] text-slate-400">
+            <span>© {new Date().getFullYear()} ParkPing India. All rights reserved.</span>
+            <span>Designed for Indian Car Owners • 100% Privacy Protected</span>
           </div>
         </div>
       </footer>
